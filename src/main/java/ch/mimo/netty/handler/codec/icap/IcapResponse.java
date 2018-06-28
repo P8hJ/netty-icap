@@ -15,7 +15,7 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import io.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 
 /**
  * ICAP response.
@@ -42,13 +42,13 @@ public interface IcapResponse extends IcapMessage {
 	
 	/**
 	 * Sets an OPTIONS body to this message.
-	 * @param optionsContent @see {@link ChannelBuffer} containing the body.
+	 * @param optionsContent @see {@link ByteBuf} containing the body.
 	 */
-	void setContent(ChannelBuffer optionsContent);
+	void setContent(ByteBuf optionsContent);
 
 	/**
 	 * Gets an OPTIONS body if present
-	 * @return @see {@link ChannelBuffer} or null
+	 * @return @see {@link ByteBuf} or null
 	 */
-	ChannelBuffer getContent();
+	ByteBuf getContent();
 }

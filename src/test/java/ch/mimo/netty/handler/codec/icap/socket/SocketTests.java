@@ -18,7 +18,7 @@ package ch.mimo.netty.handler.codec.icap.socket;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 
-import io.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.MessageEvent;
@@ -152,7 +152,7 @@ public abstract class SocketTests extends AbstractSocketTest {
 			if(msg instanceof IcapRequest) {
 				IcapRequest request = (IcapRequest)event.getMessage();
 				DataMockery.assertCreateREQMODWithTwoChunkBody(request);
-				ChannelBuffer contentBuffer = request.getHttpRequest().getContent();
+				ByteBuf contentBuffer = request.getHttpRequest().getContent();
 				String body = contentBuffer.toString(Charset.forName("ASCII"));
 				StringBuilder builder = new StringBuilder();
 				builder.append("This is data that was returned by an origin server.");
@@ -277,7 +277,7 @@ public abstract class SocketTests extends AbstractSocketTest {
 			if(msg instanceof IcapRequest) {
 				IcapRequest request = (IcapRequest)event.getMessage();
 				DataMockery.assertCreateREQMODWithPreview(request);
-				ChannelBuffer requestBodyBuffer = request.getHttpRequest().getContent();
+				ByteBuf requestBodyBuffer = request.getHttpRequest().getContent();
 				String body = requestBodyBuffer.toString(Charset.forName("ASCII"));
 				StringBuilder builder = new StringBuilder();
 				builder.append("This is data that was returned by an origin server.");

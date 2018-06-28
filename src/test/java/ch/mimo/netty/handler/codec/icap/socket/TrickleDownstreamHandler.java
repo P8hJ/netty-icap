@@ -17,7 +17,7 @@ package ch.mimo.netty.handler.codec.icap.socket;
 
 import static io.netty.channel.Channels.write;
 
-import io.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ChannelBuffers;
 import io.netty.channel.ChannelDownstreamHandler;
 import io.netty.channel.ChannelEvent;
@@ -38,9 +38,9 @@ public class TrickleDownstreamHandler implements ChannelDownstreamHandler {
 	public void handleDownstream(ChannelHandlerContext ctx, ChannelEvent e) throws Exception {
 		if(e instanceof MessageEvent) {
 			MessageEvent event = (MessageEvent)e;
-			ChannelBuffer buffer = (ChannelBuffer)event.getMessage();
+			ByteBuf buffer = (ChannelBuffer)event.getMessage();
 			while(buffer.readableBytes() > 0) {
-				ChannelBuffer newBuffer = ChannelBuffers.dynamicBuffer();
+				ByteBuf newBuffer = ChannelBuffers.dynamicBuffer();
 				if(buffer.readableBytes() >= chunkSize) {
 					newBuffer.writeBytes(buffer.readBytes(chunkSize));
 				} else {

@@ -15,7 +15,7 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import io.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ChannelBuffers;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.Channels;
@@ -35,7 +35,7 @@ import io.netty.logging.InternalLoggerFactory;
  * and header are removed entirely from the message. This is done because a preview message with an early
  * content termination is in essence nothing else than a full message.
  * 
- * The reader index of an HTTP content ChannelBuffer can be reset to 0 via a dedicated constructor in order to handle preview aggregation.
+ * The reader index of an HTTP content ByteBuf can be reset to 0 via a dedicated constructor in order to handle preview aggregation.
  * This is done in order to allow server implementations to handle preview messages properly. A preview message
  * is aggregated with the 100 Continue response from the client and the buffer will be therefore reset to 0 
  * so that the server handler can read the entire message.
@@ -59,10 +59,10 @@ public class IcapChunkAggregator extends SimpleChannelUpstreamHandler {
 	 * Convenience method to retrieve a HTTP request,response or 
 	 * an ICAP options response body from an aggregated IcapMessage. 
 	 * @param message
-	 * @return null or @see {@link ChannelBuffer} if a body exists.
+	 * @return null or @see {@link ByteBuf} if a body exists.
 	 */
-	public static ChannelBuffer extractHttpBodyContentFromIcapMessage(IcapMessage message) {
-		ChannelBuffer buffer = null;
+	public static ByteBuf extractHttpBodyContentFromIcapMessage(IcapMessage message) {
+		ByteBuf buffer = null;
 		if(message != null) {
 			if(message.getHttpRequest() != null && message.getHttpRequest().getContent().readableBytes() > 0) {
 				buffer = message.getHttpRequest().getContent();
@@ -135,8 +135,8 @@ public class IcapChunkAggregator extends SimpleChannelUpstreamHandler {
     			Channels.fireMessageReceived(ctx,message.getIcapMessage(),e.getRemoteAddress());
     			message = null;
     		} else {
-	    		ChannelBuffer chunkBuffer = chunk.getContent();
-	    		ChannelBuffer content = message.getContent();
+	    		ByteBuf chunkBuffer = chunk.getContent();
+	    		ByteBuf content = message.getContent();
     			if(content.readableBytes() > maxContentLength - chunkBuffer.readableBytes()) {
     				throw new TooLongFrameException("ICAP content length exceeded [" + maxContentLength + "] bytes");
     			} else {
@@ -201,7 +201,7 @@ public class IcapChunkAggregator extends SimpleChannelUpstreamHandler {
     		}
     	}
     	
-    	public ChannelBuffer getContent() {
+    	public ByteBuf getContent() {
     		if(messageWithBody) {
     			if(relevantHttpMessage != null) {
     				return relevantHttpMessage.getContent();

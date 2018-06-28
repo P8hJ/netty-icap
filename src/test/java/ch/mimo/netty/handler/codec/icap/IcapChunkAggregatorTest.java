@@ -20,7 +20,7 @@ import java.nio.charset.Charset;
 
 import junit.framework.Assert;
 
-import io.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.embedder.DecoderEmbedder;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,19 +41,19 @@ public class IcapChunkAggregatorTest extends AbstractIcapTest {
 	
 	@Test
 	public void retrieveOptionsBody() {
-		ChannelBuffer buffer = IcapChunkAggregator.extractHttpBodyContentFromIcapMessage(DataMockery.createOPTIONSResponseWithBodyAndContentIcapResponse());
+		ByteBuf buffer = IcapChunkAggregator.extractHttpBodyContentFromIcapMessage(DataMockery.createOPTIONSResponseWithBodyAndContentIcapResponse());
 		assertNotNull("buffer was null",buffer);
 	}
 	
 	@Test
 	public void retrieveHttpRequestBody() {
-		ChannelBuffer buffer = IcapChunkAggregator.extractHttpBodyContentFromIcapMessage(DataMockery.createREQMODWithBodyContentIcapMessage());
+		ByteBuf buffer = IcapChunkAggregator.extractHttpBodyContentFromIcapMessage(DataMockery.createREQMODWithBodyContentIcapMessage());
 		assertNotNull("buffer was null",buffer);
 	}
 	
 	@Test
 	public void retrieveHttpResponseBody() {
-		ChannelBuffer buffer = IcapChunkAggregator.extractHttpBodyContentFromIcapMessage(DataMockery.createRESPMODWithPreviewDataIcapRequest());
+		ByteBuf buffer = IcapChunkAggregator.extractHttpBodyContentFromIcapMessage(DataMockery.createRESPMODWithPreviewDataIcapRequest());
 		assertNotNull("buffer was null",buffer);
 	}
 	
@@ -67,7 +67,7 @@ public class IcapChunkAggregatorTest extends AbstractIcapTest {
 		assertNotNull("response was null",response);
 		assertEquals("wrong body value in response",IcapMessageElementEnum.OPTBODY,response.getBodyType());
 		assertNotNull("no body in options response",response.getContent());
-		ChannelBuffer buffer = response.getContent();
+		ByteBuf buffer = response.getContent();
 		assertEquals("body was wrong","This is a options body chunk.",buffer.toString(Charset.defaultCharset()));
 	}
 	
@@ -144,7 +144,7 @@ public class IcapChunkAggregatorTest extends AbstractIcapTest {
 		embedder.offer(DataMockery.crateRESPMODWithGetRequestAndPreviewLastIcapChunk());
 		IcapRequest request = (IcapRequest)embedder.poll();
 		DataMockery.assertCreateRESPMODWithGetRequestAndPreview(request);
-		ChannelBuffer buffer = request.getHttpResponse().getContent();
+		ByteBuf buffer = request.getHttpResponse().getContent();
 		Assert.assertEquals("wrong reader index",0,buffer.readerIndex());
 		String body = destructiveRead(buffer);
 		StringBuilder builder = new StringBuilder();
@@ -209,7 +209,7 @@ public class IcapChunkAggregatorTest extends AbstractIcapTest {
 		
 	}
 	
-	private String destructiveRead(ChannelBuffer buffer) {
+	private String destructiveRead(ByteBuf buffer) {
 		byte[] data = new byte[buffer.readableBytes()];
 		buffer.readBytes(data);
 		return new String(data,IcapCodecUtil.ASCII_CHARSET);

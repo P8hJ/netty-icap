@@ -15,7 +15,7 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import io.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 
 /**
  * ICAP response status enum. contains all valid response codes. like 200, 204 and others.
@@ -88,7 +88,7 @@ public enum IcapResponseStatus {
 		return code;
 	}
 	
-	public void toResponseInitialLineValue(ChannelBuffer buffer) {
+	public void toResponseInitialLineValue(ByteBuf buffer) {
 		buffer.writeBytes(Integer.toString(code).getBytes(IcapCodecUtil.ASCII_CHARSET));
 		buffer.writeByte(IcapCodecUtil.SPACE);
 		buffer.writeBytes(status.getBytes(IcapCodecUtil.ASCII_CHARSET));

@@ -15,7 +15,7 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import io.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.replay.ReplayingDecoder;
@@ -90,7 +90,7 @@ public abstract class IcapMessageDecoder extends ReplayingDecoder<StateEnum> {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
-	protected Object decode(ChannelHandlerContext ctx, Channel channel, ChannelBuffer buffer, StateEnum stateEnumValue) throws Exception {
+	protected Object decode(ChannelHandlerContext ctx, Channel channel, ByteBuf buffer, StateEnum stateEnumValue) throws Exception {
 		if(stateEnumValue != null) {
 			try {
 				State state = stateEnumValue.getState();

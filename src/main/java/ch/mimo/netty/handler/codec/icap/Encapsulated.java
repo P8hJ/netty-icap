@@ -22,7 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import io.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 
 /**
  * This class parses, creates and provides the very important Encapsulated header to the Decoder and
@@ -141,7 +141,7 @@ public final class Encapsulated {
 	 * @return the amount of bytes that where written to the buffer while encoding.
 	 * @throws UnsupportedEncodingException If a character cannot be encoded in ASCII.
 	 */
-	public int encode(ChannelBuffer buffer) throws UnsupportedEncodingException {
+	public int encode(ByteBuf buffer) throws UnsupportedEncodingException {
 		int index = buffer.readableBytes();
 		Collections.sort(entries);
 		buffer.writeBytes("Encapsulated: ".getBytes(IcapCodecUtil.ASCII_CHARSET));

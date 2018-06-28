@@ -20,7 +20,7 @@ import java.nio.charset.Charset;
 
 import junit.framework.Assert;
 
-import io.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ChannelBuffers;
 import org.junit.Test;
 
@@ -92,7 +92,7 @@ public class EncapsulatedTest extends Assert {
 	
 	@Test
 	public void testEncodeEncapsulatedHeader() {
-		ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
 		Encapsulated encapsulated = new Encapsulated();
 		encapsulated.addEntry(IcapMessageElementEnum.REQHDR,0);
 		encapsulated.addEntry(IcapMessageElementEnum.RESHDR,123);
@@ -109,7 +109,7 @@ public class EncapsulatedTest extends Assert {
 	
 	@Test
 	public void testEncodeEncapsulatedHeaderWithOdering() {
-		ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
 		Encapsulated encapsulated = new Encapsulated();
 		encapsulated.addEntry(IcapMessageElementEnum.REQBODY,270);
 		encapsulated.addEntry(IcapMessageElementEnum.RESHDR,123);
@@ -127,7 +127,7 @@ public class EncapsulatedTest extends Assert {
 	
 	@Test
 	public void testEncodeEncapsulatedHeaderWithNullBody() {
-		ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
 		Encapsulated encapsulated = new Encapsulated();
 		encapsulated.addEntry(IcapMessageElementEnum.NULLBODY,270);
 		encapsulated.addEntry(IcapMessageElementEnum.RESHDR,123);
@@ -145,7 +145,7 @@ public class EncapsulatedTest extends Assert {
 	
 	@Test
 	public void testEncodeEncapsulatedHeaderWithNullBodyThatHasZeroValue() {
-		ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
 		Encapsulated encapsulated = new Encapsulated();
 		encapsulated.addEntry(IcapMessageElementEnum.NULLBODY,0);
 		encapsulated.addEntry(IcapMessageElementEnum.RESHDR,123);

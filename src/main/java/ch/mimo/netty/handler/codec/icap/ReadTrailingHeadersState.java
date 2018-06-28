@@ -17,7 +17,7 @@ package ch.mimo.netty.handler.codec.icap;
 
 import java.util.List;
 
-import io.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpChunkTrailer;
 import io.netty.handler.codec.http.HttpHeaders;
 
@@ -36,11 +36,11 @@ public class ReadTrailingHeadersState extends State<Object> {
 	}
 	
 	@Override
-	public void onEntry(ChannelBuffer buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
+	public void onEntry(ByteBuf buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
 	}
 
 	@Override
-	public StateReturnValue execute(ChannelBuffer buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
+	public StateReturnValue execute(ByteBuf buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
 		SizeDelimiter sizeDelimiter = new SizeDelimiter(icapMessageDecoder.maxHttpHeaderSize);
 		boolean preview = icapMessageDecoder.message.isPreviewMessage();
         String line = IcapDecoderUtil.readSingleHeaderLine(buffer,sizeDelimiter);
@@ -78,7 +78,7 @@ public class ReadTrailingHeadersState extends State<Object> {
 	}
 
 	@Override
-	public StateEnum onExit(ChannelBuffer buffer, IcapMessageDecoder icapMessageDecoder, Object decisionInformation) throws DecodingException {
+	public StateEnum onExit(ByteBuf buffer, IcapMessageDecoder icapMessageDecoder, Object decisionInformation) throws DecodingException {
 		return null;
 	}
 }

@@ -15,7 +15,7 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import io.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 
 /**
  * Decoder State that reads chunk delimiters
@@ -32,11 +32,11 @@ public class ReadChunkDelimiterState extends State<Object> {
 	}
 
 	@Override
-	public void onEntry(ChannelBuffer buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
+	public void onEntry(ByteBuf buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
 	}
 
 	@Override
-	public StateReturnValue execute(ChannelBuffer buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
+	public StateReturnValue execute(ByteBuf buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
         for (;;) {
             byte next = buffer.readByte();
             if (next == IcapCodecUtil.CR) {
@@ -50,7 +50,7 @@ public class ReadChunkDelimiterState extends State<Object> {
 	}
 
 	@Override
-	public StateEnum onExit(ChannelBuffer buffer, IcapMessageDecoder icapMessageDecoder, Object decisionInformation) throws DecodingException {
+	public StateEnum onExit(ByteBuf buffer, IcapMessageDecoder icapMessageDecoder, Object decisionInformation) throws DecodingException {
 		return StateEnum.READ_CHUNK_SIZE_STATE;
 	}
 

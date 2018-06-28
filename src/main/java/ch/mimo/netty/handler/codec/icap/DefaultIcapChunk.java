@@ -15,7 +15,7 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import io.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.DefaultHttpChunk;
 
 /**
@@ -30,7 +30,7 @@ public class DefaultIcapChunk extends DefaultHttpChunk implements IcapChunk {
 	private boolean preview;
 	private boolean earlyTerminated;
 	
-	public DefaultIcapChunk(ChannelBuffer content) {
+	public DefaultIcapChunk(ByteBuf content) {
 		super(content);
 	}
 	

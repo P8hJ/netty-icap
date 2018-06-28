@@ -17,7 +17,7 @@ package ch.mimo.netty.handler.codec.icap;
 
 import java.util.List;
 
-import io.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -38,7 +38,7 @@ public class ReadHttpResponseInitalAndHeadersState extends State<Object> {
 	}
 	
 	@Override
-	public void onEntry(ChannelBuffer buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
+	public void onEntry(ByteBuf buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
 		if(icapMessageDecoder.message == null) {
 			throw new IllegalArgumentException("This state requires a valid IcapMessage instance");
 		}
@@ -48,7 +48,7 @@ public class ReadHttpResponseInitalAndHeadersState extends State<Object> {
 	}
 
 	@Override
-	public StateReturnValue execute(ChannelBuffer buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
+	public StateReturnValue execute(ByteBuf buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
 		String line = IcapDecoderUtil.readLine(buffer,icapMessageDecoder.maxInitialLineLength);
 		String[] initialLine = IcapDecoderUtil.splitInitialLine(line);
 		HttpResponse message = new DefaultHttpResponse(HttpVersion.valueOf(initialLine[0]),HttpResponseStatus.valueOf(Integer.parseInt(initialLine[1])));
@@ -66,7 +66,7 @@ public class ReadHttpResponseInitalAndHeadersState extends State<Object> {
 	}
 
 	@Override
-	public StateEnum onExit(ChannelBuffer buffer, IcapMessageDecoder icapMessageDecoder, Object decisionInformation) throws DecodingException {
+	public StateEnum onExit(ByteBuf buffer, IcapMessageDecoder icapMessageDecoder, Object decisionInformation) throws DecodingException {
 		Encapsulated encapsulated = icapMessageDecoder.message.getEncapsulatedHeader();
 		IcapMessageElementEnum entry = encapsulated.getNextEntry();
 		if(entry != null) {

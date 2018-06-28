@@ -18,7 +18,7 @@ package ch.mimo.netty.handler.codec.icap;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.frame.TooLongFrameException;
 
 /**
@@ -37,7 +37,7 @@ public final class IcapDecoderUtil {
 	 * by skipping all prepended control and whitespace characters.
 	 * @param buffer
 	 */
-    public static void skipControlCharacters(ChannelBuffer buffer) {
+    public static void skipControlCharacters(ByteBuf buffer) {
         for (;;) {
             char c = (char) buffer.readUnsignedByte();
             if (!Character.isISOControl(c) &&
@@ -55,7 +55,7 @@ public final class IcapDecoderUtil {
      * @return the first line found in the buffer.
      * @throws TooLongFrameException
      */
-    public static String readLine(ChannelBuffer buffer, int maxLineLength) throws DecodingException {
+    public static String readLine(ByteBuf buffer, int maxLineLength) throws DecodingException {
         StringBuilder sb = new StringBuilder(64);
         int lineLength = 0;
         while (true) {
@@ -87,7 +87,7 @@ public final class IcapDecoderUtil {
      * @return the first line found in the buffer
      * @throws DecodingException
      */
-    public static String previewLine(ChannelBuffer buffer, int maxLineLength) throws DecodingException {
+    public static String previewLine(ByteBuf buffer, int maxLineLength) throws DecodingException {
         StringBuilder sb = new StringBuilder(64);
         int lineLength = 0;
         for(int i = buffer.readerIndex() ; i < buffer.readableBytes() ; i++) {
@@ -213,12 +213,12 @@ public final class IcapDecoderUtil {
 	
     /**
      * parses all available message headers.
-     * @param buffer @see {@link ChannelBuffer} that contains the headers.
+     * @param buffer @see {@link ByteBuf} that contains the headers.
      * @param maxSize the maximum size of all headers concatenated.
      * @return a list of String arrays containing [0] key [1] value of each header.
      * @throws TooLongFrameException if the maximum size is reached.
      */
-	public static List<String[]> readHeaders(ChannelBuffer buffer, int maxSize) throws DecodingException {
+	public static List<String[]> readHeaders(ByteBuf buffer, int maxSize) throws DecodingException {
 		List<String[]> headerList = new ArrayList<String[]>();
 		SizeDelimiter sizeDelimiter = new SizeDelimiter(maxSize);
 		String line = IcapDecoderUtil.readSingleHeaderLine(buffer,sizeDelimiter);
@@ -257,7 +257,7 @@ public final class IcapDecoderUtil {
 	 * @return one complete header containing key and value.
 	 * @throws TooLongFrameException In case the total header length is exceeded.
 	 */
-	public static String readSingleHeaderLine(ChannelBuffer buffer, SizeDelimiter sizeDelimiter) throws DecodingException {
+	public static String readSingleHeaderLine(ByteBuf buffer, SizeDelimiter sizeDelimiter) throws DecodingException {
 		StringBuilder sb = new StringBuilder(64);
 		loop: for (;;) {
 			char nextByte = (char) buffer.readByte();

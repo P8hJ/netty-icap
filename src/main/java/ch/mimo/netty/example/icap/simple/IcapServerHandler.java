@@ -17,7 +17,7 @@ package ch.mimo.netty.example.icap.simple;
 
 import java.nio.charset.Charset;
 
-import io.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.MessageEvent;
 import io.netty.channel.SimpleChannelUpstreamHandler;
@@ -56,7 +56,7 @@ public class IcapServerHandler extends SimpleChannelUpstreamHandler {
 		}
 		response.addHeader(IcapHeaders.Names.ISTAG,"SimpleServer-version-1.0");
 		
-		ChannelBuffer buffer = null;
+		ByteBuf buffer = null;
 		switch (bodyType) {
 		case NULLBODY:
 			// No body in request

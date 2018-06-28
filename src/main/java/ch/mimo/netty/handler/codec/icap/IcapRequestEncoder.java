@@ -15,7 +15,7 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import io.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 
 /**
  * Encodes an ICAP Request which takes an @see {@link IcapRequest} or @see {@link IcapChunk} to encode.
@@ -30,7 +30,7 @@ public class IcapRequestEncoder extends IcapMessageEncoder {
 	}
 	
 	@Override
-	protected int encodeInitialLine(ChannelBuffer buffer, IcapMessage message) throws Exception {
+	protected int encodeInitialLine(ByteBuf buffer, IcapMessage message) throws Exception {
 		IcapRequest request = (IcapRequest) message;
 		int index = buffer.readableBytes();
         buffer.writeBytes(request.getMethod().toString().getBytes(IcapCodecUtil.ASCII_CHARSET));

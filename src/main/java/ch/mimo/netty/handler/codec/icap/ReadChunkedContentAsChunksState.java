@@ -15,7 +15,7 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import io.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 
 /**
  * Decoder State that reads one huge chunk into many smaller chunks
@@ -32,11 +32,11 @@ public class ReadChunkedContentAsChunksState extends State<Object> {
 	}
 	
 	@Override
-	public void onEntry(ChannelBuffer buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
+	public void onEntry(ByteBuf buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
 	}
 
 	@Override
-	public StateReturnValue execute(ChannelBuffer buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
+	public StateReturnValue execute(ByteBuf buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
 		IcapChunk chunk = null;
 		if(icapMessageDecoder.currentChunkSize > icapMessageDecoder.maxChunkSize) {
 			chunk = new DefaultIcapChunk(buffer.readBytes(icapMessageDecoder.maxChunkSize));
@@ -54,7 +54,7 @@ public class ReadChunkedContentAsChunksState extends State<Object> {
 	}
 
 	@Override
-	public StateEnum onExit(ChannelBuffer buffer, IcapMessageDecoder icapMessageDecoder, Object decisionInformation) throws DecodingException {
+	public StateEnum onExit(ByteBuf buffer, IcapMessageDecoder icapMessageDecoder, Object decisionInformation) throws DecodingException {
 		if(icapMessageDecoder.currentChunkSize == 0) {
 			return StateEnum.READ_CHUNK_DELIMITER_STATE;
 		}

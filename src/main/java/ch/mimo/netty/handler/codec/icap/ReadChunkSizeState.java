@@ -15,7 +15,7 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import io.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 
 /**
  * Decoder State that reads chunk size
@@ -57,7 +57,7 @@ public class ReadChunkSizeState extends State<ReadChunkSizeState.DecisionState> 
 	}
 	
 	@Override
-	public void onEntry(ChannelBuffer buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
+	public void onEntry(ByteBuf buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
 	}
 
 	@Override
@@ -79,7 +79,7 @@ public class ReadChunkSizeState extends State<ReadChunkSizeState.DecisionState> 
 	 * 5. chunk size == 0 and message is preview message. Stay in state and wait for more data.
 	 * 6. chunk size == 0 step out (END STATE/reset).
 	 */
-	public StateReturnValue execute(ChannelBuffer buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
+	public StateReturnValue execute(ByteBuf buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
 		int chunkSize = 0;
 		String previewLine = IcapDecoderUtil.previewLine(buffer,icapMessageDecoder.maxInitialLineLength);
 		try {
@@ -115,11 +115,11 @@ public class ReadChunkSizeState extends State<ReadChunkSizeState.DecisionState> 
 	}
 	
 	@Override
-	public StateEnum onExit(ChannelBuffer buffer, IcapMessageDecoder icapMessageDecoder, DecisionState decisionInformation) throws DecodingException {
+	public StateEnum onExit(ByteBuf buffer, IcapMessageDecoder icapMessageDecoder, DecisionState decisionInformation) throws DecodingException {
 		return decisionInformation.getNextState();
 	}
 	
-	private boolean checkForLineBreak(ChannelBuffer buffer) {
+	private boolean checkForLineBreak(ByteBuf buffer) {
 		byte previewByte = buffer.getByte(buffer.readerIndex() + 1);
 		return previewByte == IcapCodecUtil.CR | previewByte == IcapCodecUtil.LF;
 	}

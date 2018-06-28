@@ -15,7 +15,7 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import io.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 
 /**
  * ICAP Response encoder which takes an @see {@link IcapResponse} or @see {@link IcapChunk} to encode.
@@ -25,7 +25,7 @@ import io.netty.buffer.ChannelBuffer;
 public class IcapResponseEncoder extends IcapMessageEncoder {
 
 	@Override
-	protected int encodeInitialLine(ChannelBuffer buffer, IcapMessage message) {
+	protected int encodeInitialLine(ByteBuf buffer, IcapMessage message) {
 		IcapResponse request = (IcapResponse)message;
 		int index = buffer.readableBytes();
 		buffer.writeBytes(request.getProtocolVersion().toString().getBytes(IcapCodecUtil.ASCII_CHARSET));

@@ -18,7 +18,7 @@ package ch.mimo.netty.handler.codec.icap;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 
-import io.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.embedder.EncoderEmbedder;
 import org.junit.Before;
 import org.junit.Test;
@@ -137,7 +137,7 @@ public class IcapRequestEncoderTest extends AbstractEncoderTest {
 	public void createOPTIONSRequestProgramaticallyAndEncodeItToValidateEncapsulationHeaderExistence() {
 		IcapRequest request = new DefaultIcapRequest(IcapVersion.ICAP_1_0,IcapMethod.OPTIONS,"/foo/bar","icap.server.com");
 		embedder.offer(request);
-		ChannelBuffer buffer = (ChannelBuffer)embedder.poll();
+		ByteBuf buffer = (ChannelBuffer)embedder.poll();
 		assertTrue("No Encapsulated header found",buffer.toString(Charset.defaultCharset()).indexOf("Encapsulated") > 0);
 	}
 }

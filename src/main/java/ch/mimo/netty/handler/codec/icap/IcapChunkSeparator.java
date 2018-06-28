@@ -15,7 +15,7 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import io.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelDownstreamHandler;
 import io.netty.channel.ChannelEvent;
 import io.netty.channel.ChannelHandlerContext;
@@ -28,7 +28,7 @@ import io.netty.logging.InternalLoggerFactory;
  * Separates a received ICAP message and body that is attached to either the HTTP request or response.
  * 
  * In other words. This handler allows to create a combined ICAP message containing HTTP request/response and
- * the corresponding body as ChannelBuffer include in one of the HTTP relevant instances.
+ * the corresponding body as ByteBuf include in one of the HTTP relevant instances.
  * 
  * This separator cannot handle trailing headers at HTTP request or response bodies. If you have to
  * send trailing headers then consider not using this separator but handling the message body by yourself.
@@ -57,7 +57,7 @@ public class IcapChunkSeparator implements ChannelDownstreamHandler {
 	    	if(msg instanceof IcapMessage) {
 	    		LOG.debug("Separation of message [" + msg.getClass().getName() + "] ");
 	    		IcapMessage message = (IcapMessage)msg;
-	    		ChannelBuffer content = extractContentFromMessage(message);
+	    		ByteBuf content = extractContentFromMessage(message);
 	    		fireDownstreamEvent(ctx,message,msgEvent);
 	    		if(content != null) {
 	    			boolean isPreview = message.isPreviewMessage();
@@ -91,8 +91,8 @@ public class IcapChunkSeparator implements ChannelDownstreamHandler {
 		}
 	}
     
-	private ChannelBuffer extractContentFromMessage(IcapMessage message) {
-		ChannelBuffer content = null;
+	private ByteBuf extractContentFromMessage(IcapMessage message) {
+		ByteBuf content = null;
 		if(message instanceof IcapResponse && ((IcapResponse)message).getContent() != null) {
 			IcapResponse response = (IcapResponse)message;
 			content = response.getContent();

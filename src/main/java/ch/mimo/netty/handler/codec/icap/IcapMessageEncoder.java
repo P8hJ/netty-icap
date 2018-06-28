@@ -18,7 +18,7 @@ package ch.mimo.netty.handler.codec.icap;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
-import io.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ChannelBuffers;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -49,11 +49,11 @@ public abstract class IcapMessageEncoder extends OneToOneEncoder {
 		LOG.debug("Encoding [" + msg.getClass().getName() + "]");
 		if(msg instanceof IcapMessage) {
 			IcapMessage message = (IcapMessage)msg;
-            ChannelBuffer buffer = ChannelBuffers.dynamicBuffer(channel.getConfig().getBufferFactory());
+            ByteBuf buffer = ChannelBuffers.dynamicBuffer(channel.getConfig().getBufferFactory());
 			encodeInitialLine(buffer,message);
 			encodeHeaders(buffer,message);
-			ChannelBuffer httpRequestBuffer = encodeHttpRequestHeader(message.getHttpRequest());
-			ChannelBuffer httpResponseBuffer = encodeHttpResponseHeader(message.getHttpResponse());
+			ByteBuf httpRequestBuffer = encodeHttpRequestHeader(message.getHttpRequest());
+			ByteBuf httpResponseBuffer = encodeHttpResponseHeader(message.getHttpResponse());
             int index = 0;
             Encapsulated encapsulated = new Encapsulated();
             if(httpRequestBuffer.readableBytes() > 0) {
@@ -76,7 +76,7 @@ public abstract class IcapMessageEncoder extends OneToOneEncoder {
             buffer.writeBytes(httpResponseBuffer);
             return buffer;
 		} else if(msg instanceof IcapChunk) {
-			ChannelBuffer buffer = ChannelBuffers.dynamicBuffer(channel.getConfig().getBufferFactory());
+			ByteBuf buffer = ChannelBuffers.dynamicBuffer(channel.getConfig().getBufferFactory());
 			IcapChunk chunk = (IcapChunk)msg;
 			if(chunk.isLast()) {
 				if(chunk.isEarlyTerminated()) {
@@ -94,7 +94,7 @@ public abstract class IcapMessageEncoder extends OneToOneEncoder {
 					buffer.writeBytes(IcapCodecUtil.CRLF);
 				}
 			} else {
-				ChannelBuffer chunkBuffer = chunk.getContent();
+				ByteBuf chunkBuffer = chunk.getContent();
 				int contentLength = chunkBuffer.readableBytes();
 				buffer.writeBytes(Integer.toHexString(contentLength).getBytes(IcapCodecUtil.ASCII_CHARSET));
 				buffer.writeBytes(IcapCodecUtil.CRLF);
@@ -106,10 +106,10 @@ public abstract class IcapMessageEncoder extends OneToOneEncoder {
 		return null;
 	}
 
-	protected abstract int encodeInitialLine(ChannelBuffer buffer, IcapMessage message)  throws Exception;
+	protected abstract int encodeInitialLine(ByteBuf buffer, IcapMessage message)  throws Exception;
 	
-	private ChannelBuffer encodeHttpRequestHeader(HttpRequest httpRequest) throws UnsupportedEncodingException {
-		ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
+	private ByteBuf encodeHttpRequestHeader(HttpRequest httpRequest) throws UnsupportedEncodingException {
+		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
 		if(httpRequest != null) {
 			buffer.writeBytes(httpRequest.getMethod().toString().getBytes(IcapCodecUtil.ASCII_CHARSET));
 			buffer.writeByte(IcapCodecUtil.SPACE);
@@ -124,8 +124,8 @@ public abstract class IcapMessageEncoder extends OneToOneEncoder {
 		return buffer;
 	}
 	
-	private ChannelBuffer encodeHttpResponseHeader(HttpResponse httpResponse) throws UnsupportedEncodingException {
-		ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
+	private ByteBuf encodeHttpResponseHeader(HttpResponse httpResponse) throws UnsupportedEncodingException {
+		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
 		if(httpResponse != null) {
 			buffer.writeBytes(httpResponse.getProtocolVersion().toString().getBytes(IcapCodecUtil.ASCII_CHARSET));
 			buffer.writeByte(IcapCodecUtil.SPACE);
@@ -138,7 +138,7 @@ public abstract class IcapMessageEncoder extends OneToOneEncoder {
 		return buffer;
 	}
 	
-    private int encodeTrailingHeaders(ChannelBuffer buffer, IcapChunkTrailer chunkTrailer) {
+    private int encodeTrailingHeaders(ByteBuf buffer, IcapChunkTrailer chunkTrailer) {
     	int index = buffer.readableBytes();
         for (Map.Entry<String, String> h: chunkTrailer.getHeaders()) {
             encodeHeader(buffer, h.getKey(), h.getValue());
@@ -146,7 +146,7 @@ public abstract class IcapMessageEncoder extends OneToOneEncoder {
         return buffer.readableBytes() - index;
     }
 	
-    private int encodeHeaders(ChannelBuffer buffer, IcapMessage message) {
+    private int encodeHeaders(ByteBuf buffer, IcapMessage message) {
     	int index = buffer.readableBytes();
         for (Map.Entry<String, String> h: message.getHeaders()) {
             encodeHeader(buffer, h.getKey(), h.getValue());
@@ -154,7 +154,7 @@ public abstract class IcapMessageEncoder extends OneToOneEncoder {
         return buffer.readableBytes() - index;
     }
     
-    private void encodeHeader(ChannelBuffer buf, String header, String value) {
+    private void encodeHeader(ByteBuf buf, String header, String value) {
 		buf.writeBytes(header.getBytes(IcapCodecUtil.ASCII_CHARSET));
 		buf.writeByte(IcapCodecUtil.COLON);
 		buf.writeByte(IcapCodecUtil.SPACE);
