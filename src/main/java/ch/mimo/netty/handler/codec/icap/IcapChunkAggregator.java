@@ -21,7 +21,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.Channels;
 import io.netty.channel.MessageEvent;
 import io.netty.channel.SimpleChannelUpstreamHandler;
-import io.netty.handler.codec.frame.TooLongFrameException;
+import io.netty.handler.codec.TooLongFrameException;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
