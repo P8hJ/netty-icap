@@ -23,8 +23,8 @@ import io.netty.channel.MessageEvent;
 import io.netty.channel.SimpleChannelUpstreamHandler;
 import io.netty.handler.codec.frame.TooLongFrameException;
 import io.netty.handler.codec.http.HttpMessage;
-import io.netty.logging.InternalLogger;
-import io.netty.logging.InternalLoggerFactory;
+import io.netty.util.internal.logging.InternalLogger;
+import io.netty.util.internal.logging.InternalLoggerFactory;
 
 /**
  * This ICAP chunk aggregator will combine an received ICAP message with all body chunks.

@@ -15,8 +15,8 @@
  ******************************************************************************/
 package ch.mimo.netty.icap.container.osgi;
 
-import io.netty.logging.InternalLoggerFactory;
-import io.netty.logging.OsgiLoggerFactory;
+import io.netty.util.internal.logging.InternalLoggerFactory;
+import io.netty.util.internal.logging.OsgiLoggerFactory;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 

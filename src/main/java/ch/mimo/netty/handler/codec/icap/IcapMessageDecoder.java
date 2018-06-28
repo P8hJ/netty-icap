@@ -18,9 +18,9 @@ package ch.mimo.netty.handler.codec.icap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.replay.ReplayingDecoder;
-import io.netty.logging.InternalLogger;
-import io.netty.logging.InternalLoggerFactory;
+import io.netty.handler.codec.ReplayingDecoder;
+import io.netty.util.internal.logging.InternalLogger;
+import io.netty.util.internal.logging.InternalLoggerFactory;
 
 /**
  * Main ICAP message decoder implementation. this decoder is bases on a @see {@link ReplayingDecoder}

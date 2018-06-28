@@ -21,8 +21,8 @@ import io.netty.channel.ChannelEvent;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.DownstreamMessageEvent;
 import io.netty.channel.MessageEvent;
-import io.netty.logging.InternalLogger;
-import io.netty.logging.InternalLoggerFactory;
+import io.netty.util.internal.logging.InternalLogger;
+import io.netty.util.internal.logging.InternalLoggerFactory;
 
 /**
  * Separates a received ICAP message and body that is attached to either the HTTP request or response.
