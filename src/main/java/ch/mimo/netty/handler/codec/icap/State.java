@@ -15,7 +15,7 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import org.jboss.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ChannelBuffer;
 
 /**
  * Abstract state implementation for all Decoder states.

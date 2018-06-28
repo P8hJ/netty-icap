@@ -15,14 +15,14 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap.socket;
 
-import static org.jboss.netty.channel.Channels.write;
+import static io.netty.channel.Channels.write;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.ChannelDownstreamHandler;
-import org.jboss.netty.channel.ChannelEvent;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.MessageEvent;
+import io.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ChannelBuffers;
+import io.netty.channel.ChannelDownstreamHandler;
+import io.netty.channel.ChannelEvent;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.MessageEvent;
 
 public class TrickleDownstreamHandler implements ChannelDownstreamHandler {
 

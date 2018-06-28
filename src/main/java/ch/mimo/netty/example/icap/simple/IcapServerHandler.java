@@ -17,11 +17,11 @@ package ch.mimo.netty.example.icap.simple;
 
 import java.nio.charset.Charset;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
+import io.netty.buffer.ChannelBuffer;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.MessageEvent;
+import io.netty.channel.SimpleChannelUpstreamHandler;
+import io.netty.handler.codec.http.HttpHeaders;
 
 import ch.mimo.netty.handler.codec.icap.DefaultIcapResponse;
 import ch.mimo.netty.handler.codec.icap.IcapHeaders;

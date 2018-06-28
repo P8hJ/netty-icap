@@ -15,10 +15,10 @@
  ******************************************************************************/
 package ch.mimo.netty.example.icap.preview;
 
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import io.netty.buffer.ChannelBuffers;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.MessageEvent;
+import io.netty.channel.SimpleChannelUpstreamHandler;
 
 import ch.mimo.netty.handler.codec.icap.DefaultIcapChunk;
 import ch.mimo.netty.handler.codec.icap.DefaultIcapChunkTrailer;

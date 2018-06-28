@@ -18,8 +18,8 @@ package ch.mimo.netty.handler.codec.icap;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.handler.codec.frame.TooLongFrameException;
+import io.netty.buffer.ChannelBuffer;
+import io.netty.handler.codec.frame.TooLongFrameException;
 
 /**
  * Utility that provides decoding support for ICAP messages.

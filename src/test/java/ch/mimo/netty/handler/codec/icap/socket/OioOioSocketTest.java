@@ -17,9 +17,9 @@ package ch.mimo.netty.handler.codec.icap.socket;
 
 import java.util.concurrent.Executor;
 
-import org.jboss.netty.channel.ChannelFactory;
-import org.jboss.netty.channel.socket.oio.OioClientSocketChannelFactory;
-import org.jboss.netty.channel.socket.oio.OioServerSocketChannelFactory;
+import io.netty.channel.ChannelFactory;
+import io.netty.channel.socket.oio.OioClientSocketChannelFactory;
+import io.netty.channel.socket.oio.OioServerSocketChannelFactory;
 
 public class OioOioSocketTest extends SocketTests {
 

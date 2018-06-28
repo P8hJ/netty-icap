@@ -18,8 +18,8 @@ package ch.mimo.netty.handler.codec.icap;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.handler.codec.embedder.EncoderEmbedder;
+import io.netty.buffer.ChannelBuffer;
+import io.netty.handler.codec.embedder.EncoderEmbedder;
 import org.junit.Before;
 import org.junit.Test;
 

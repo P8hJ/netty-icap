@@ -19,8 +19,8 @@ import java.util.List;
 
 import junit.framework.Assert;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
+import io.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ChannelBuffers;
 import org.junit.Test;
 
 public class IcapDecoderUtilTest extends Assert {

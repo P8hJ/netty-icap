@@ -17,7 +17,7 @@ package ch.mimo.netty.handler.codec.icap;
 
 import java.util.List;
 
-import org.jboss.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ChannelBuffer;
 
 /**
  * Decoder State that reads icap headers.

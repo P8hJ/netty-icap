@@ -18,7 +18,7 @@ package ch.mimo.netty.handler.codec.icap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.jboss.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.HttpVersion;
 
 /**
  * Provides translation and handling for Icap version string.

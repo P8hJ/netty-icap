@@ -17,7 +17,7 @@ package ch.mimo.netty.handler.codec.icap;
 
 import java.nio.charset.Charset;
 
-import org.jboss.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ChannelBuffer;
 import org.junit.After;
 import org.junit.Before;
 

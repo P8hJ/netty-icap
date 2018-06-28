@@ -15,7 +15,7 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import org.jboss.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ChannelBuffer;
 
 /**
  * ICAP response status enum. contains all valid response codes. like 200, 204 and others.

@@ -15,7 +15,7 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import org.jboss.netty.handler.codec.http.HttpChunk;
+import io.netty.handler.codec.http.HttpChunk;
 
 /**
  * This is the main ICAP Chunk. In essence it is a @see {@link HttpChunk} with the addition of 

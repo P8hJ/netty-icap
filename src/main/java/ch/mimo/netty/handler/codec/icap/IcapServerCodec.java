@@ -15,10 +15,10 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import org.jboss.netty.channel.ChannelDownstreamHandler;
-import org.jboss.netty.channel.ChannelEvent;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelUpstreamHandler;
+import io.netty.channel.ChannelDownstreamHandler;
+import io.netty.channel.ChannelEvent;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelUpstreamHandler;
 
 /**
  * A combination of @see {@link IcapRequestDecoder} and @see {@link IcapResponseEncoder}

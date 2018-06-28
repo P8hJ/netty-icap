@@ -20,8 +20,8 @@ import java.nio.charset.Charset;
 
 import junit.framework.Assert;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.handler.codec.embedder.DecoderEmbedder;
+import io.netty.buffer.ChannelBuffer;
+import io.netty.handler.codec.embedder.DecoderEmbedder;
 import org.junit.Before;
 import org.junit.Test;
 

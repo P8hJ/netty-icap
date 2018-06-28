@@ -15,10 +15,10 @@
  ******************************************************************************/
 package ch.mimo.netty.example.icap.squidechoserver;
 
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ExceptionEvent;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ExceptionEvent;
+import io.netty.channel.MessageEvent;
+import io.netty.channel.SimpleChannelUpstreamHandler;
 
 import ch.mimo.netty.handler.codec.icap.DefaultIcapResponse;
 import ch.mimo.netty.handler.codec.icap.IcapHeaders;

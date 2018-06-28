@@ -15,14 +15,14 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.channel.ChannelDownstreamHandler;
-import org.jboss.netty.channel.ChannelEvent;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.DownstreamMessageEvent;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.logging.InternalLogger;
-import org.jboss.netty.logging.InternalLoggerFactory;
+import io.netty.buffer.ChannelBuffer;
+import io.netty.channel.ChannelDownstreamHandler;
+import io.netty.channel.ChannelEvent;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.DownstreamMessageEvent;
+import io.netty.channel.MessageEvent;
+import io.netty.logging.InternalLogger;
+import io.netty.logging.InternalLoggerFactory;
 
 /**
  * Separates a received ICAP message and body that is attached to either the HTTP request or response.

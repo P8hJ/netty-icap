@@ -22,7 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import org.jboss.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ChannelBuffer;
 
 /**
  * This class parses, creates and provides the very important Encapsulated header to the Decoder and

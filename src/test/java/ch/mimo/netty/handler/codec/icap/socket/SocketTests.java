@@ -18,10 +18,10 @@ package ch.mimo.netty.handler.codec.icap.socket;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.MessageEvent;
+import io.netty.buffer.ChannelBuffer;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.MessageEvent;
 import org.junit.Test;
 
 import ch.mimo.netty.handler.codec.icap.DataMockery;

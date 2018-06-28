@@ -15,8 +15,8 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.util.internal.StringUtil;
+import io.netty.buffer.ChannelBuffer;
+import io.netty.util.internal.StringUtil;
 
 /**
  * Main Icap Response implementation. This is the starting point to create any Icap response.

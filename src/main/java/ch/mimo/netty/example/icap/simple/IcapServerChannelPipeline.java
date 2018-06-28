@@ -15,10 +15,10 @@
  ******************************************************************************/
 package ch.mimo.netty.example.icap.simple;
 
-import static org.jboss.netty.channel.Channels.pipeline;
+import static io.netty.channel.Channels.pipeline;
 
-import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.ChannelPipelineFactory;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelPipelineFactory;
 
 import ch.mimo.netty.handler.codec.icap.IcapChunkAggregator;
 import ch.mimo.netty.handler.codec.icap.IcapChunkSeparator;

@@ -18,8 +18,8 @@ package ch.mimo.netty.example.icap.simple;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 
-import org.jboss.netty.bootstrap.ServerBootstrap;
-import org.jboss.netty.channel.socket.oio.OioServerSocketChannelFactory;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.socket.oio.OioServerSocketChannelFactory;
 
 /**
  * An ICAP Server that prints the request and sends back the content of the request that was receveid.

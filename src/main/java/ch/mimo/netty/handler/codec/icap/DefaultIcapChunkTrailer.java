@@ -15,7 +15,7 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import org.jboss.netty.handler.codec.http.DefaultHttpChunkTrailer;
+import io.netty.handler.codec.http.DefaultHttpChunkTrailer;
 
 /**
  * This class is used to indicate the end of a chunked data stream and to hold 

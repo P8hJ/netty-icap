@@ -17,9 +17,9 @@ package ch.mimo.netty.handler.codec.icap;
 
 import java.util.List;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.handler.codec.http.HttpChunkTrailer;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
+import io.netty.buffer.ChannelBuffer;
+import io.netty.handler.codec.http.HttpChunkTrailer;
+import io.netty.handler.codec.http.HttpHeaders;
 
 /**
  * Decoder State that reads http trailing headers.
