@@ -308,6 +308,13 @@
 					<debug>true</debug>
 					<optimize>true</optimize>
 					<showDeprecations>true</showDeprecations>
+					<excludes>
+						<exclude>ch/mimo/netty/icap/container/**</exclude>
+					</excludes>
+					<testExcludes>
+						<exclude>**</exclude>
+					</testExcludes>
+
 				</configuration>
 			</plugin>
 			<plugin>
@@ -365,32 +372,32 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.8</version>
-				<executions>
-					<execution>
-						<id>create-jar</id>
-						<phase>package</phase>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-						<configuration>
-							<attach>true</attach>
-						</configuration>
-					</execution>
-				</executions>
-				<configuration>
-          			<destDir>${project.build.directory}/docbkx/api</destDir>
-					<excludePackageNames>ch.mimo.netty.example*</excludePackageNames>
-					<javadocDirectory>${basedir}/src/main/javadoc</javadocDirectory>
-					<stylesheetfile>${basedir}/src/main/javadoc/stylesheet.css</stylesheetfile>
-					<version>true</version>
-					<author>true</author>
-					<doctitle>${project.name} API Reference (${project.version})</doctitle>
-					<windowtitle>${project.name} API Reference (${project.version})</windowtitle>
-				</configuration>
-			</plugin>
+			<!--<plugin>-->
+				<!--<artifactId>maven-javadoc-plugin</artifactId>-->
+				<!--<version>2.8</version>-->
+				<!--<executions>-->
+					<!--<execution>-->
+						<!--<id>create-jar</id>-->
+						<!--<phase>package</phase>-->
+						<!--<goals>-->
+							<!--<goal>jar</goal>-->
+						<!--</goals>-->
+						<!--<configuration>-->
+							<!--<attach>true</attach>-->
+						<!--</configuration>-->
+					<!--</execution>-->
+				<!--</executions>-->
+				<!--<configuration>-->
+          			<!--<destDir>${project.build.directory}/docbkx/api</destDir>-->
+					<!--<excludePackageNames>ch.mimo.netty.example*</excludePackageNames>-->
+					<!--<javadocDirectory>${basedir}/src/main/javadoc</javadocDirectory>-->
+					<!--<stylesheetfile>${basedir}/src/main/javadoc/stylesheet.css</stylesheetfile>-->
+					<!--<version>true</version>-->
+					<!--<author>true</author>-->
+					<!--<doctitle>${project.name} API Reference (${project.version})</doctitle>-->
+					<!--<windowtitle>${project.name} API Reference (${project.version})</windowtitle>-->
+				<!--</configuration>-->
+			<!--</plugin>-->
 			<plugin>
 				<artifactId>maven-antrun-plugin</artifactId>
 				<version>1.6</version>
@@ -464,8 +471,8 @@
 										<delete file="${project.build.directory}/${project.build.finalName}-sources.orig.jar" />
 										<checksum file="${project.build.directory}/${project.build.finalName}-sources.jar" algorithm="md5" forceoverwrite="yes" />
 										<checksum file="${project.build.directory}/${project.build.finalName}-sources.jar" algorithm="sha1" forceoverwrite="yes" />
-										<checksum file="${project.build.directory}/${project.build.finalName}-javadoc.jar" algorithm="md5" forceoverwrite="yes" />		
-										<checksum file="${project.build.directory}/${project.build.finalName}-javadoc.jar" algorithm="sha1" forceoverwrite="yes" />										
+										<!--<checksum file="${project.build.directory}/${project.build.finalName}-javadoc.jar" algorithm="md5" forceoverwrite="yes" />		-->
+										<!--<checksum file="${project.build.directory}/${project.build.finalName}-javadoc.jar" algorithm="sha1" forceoverwrite="yes" />										-->
 									</then>
 								</if>
 							</target>
