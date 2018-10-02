@@ -18,8 +18,8 @@ package ch.mimo.netty.handler.codec.icap;
 import java.util.List;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.handler.codec.http.HttpChunkTrailer;
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.LastHttpContent;
 
 /**
  * Decoder State that reads http trailing headers.
@@ -46,11 +46,11 @@ public class ReadTrailingHeadersState extends State<Object> {
         String line = IcapDecoderUtil.readSingleHeaderLine(buffer,sizeDelimiter);
         String lastHeader = null;
         if (line.length() != 0) {
-            HttpChunkTrailer trailer = new DefaultIcapChunkTrailer(preview,false);
+            LastHttpContent trailer = new DefaultIcapChunkTrailer(preview,false);
             do {
                 char firstChar = line.charAt(0);
                 if (lastHeader != null && (firstChar == ' ' || firstChar == '\t')) {
-                    List<String> current = trailer.getHeaders(lastHeader);
+                    List<String> current = trailer.trailingHeaders().getAll(lastHeader);
                     if (current.size() != 0) {
                         int lastPos = current.size() - 1;
                         String newString = current.get(lastPos) + line.trim();
@@ -64,7 +64,7 @@ public class ReadTrailingHeadersState extends State<Object> {
                     if (!name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH) &&
                         !name.equalsIgnoreCase(HttpHeaders.Names.TRANSFER_ENCODING) &&
                         !name.equalsIgnoreCase(HttpHeaders.Names.TRAILER)) {
-                        trailer.addHeader(name, header[1]);
+                        trailer.trailingHeaders().add(name, header[1]);
                     }
                     lastHeader = name;
                 }
