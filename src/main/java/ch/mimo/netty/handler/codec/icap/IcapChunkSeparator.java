@@ -16,11 +16,9 @@
 package ch.mimo.netty.handler.codec.icap;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelDownstreamHandler;
-import io.netty.channel.ChannelEvent;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.DownstreamMessageEvent;
-import io.netty.channel.MessageEvent;
+import io.netty.channel.ChannelOutboundHandlerAdapter;
+import io.netty.channel.ChannelPromise;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 
@@ -36,7 +34,7 @@ import io.netty.util.internal.logging.InternalLoggerFactory;
  * @author Michael Mimo Moratti (mimo@mimo.ch)
  *
  */
-public class IcapChunkSeparator implements ChannelDownstreamHandler {
+public class IcapChunkSeparator extends ChannelOutboundHandlerAdapter {
 
 	private static final InternalLogger LOG = InternalLoggerFactory.getInstance(IcapChunkSeparator.class);
 	
@@ -48,46 +46,40 @@ public class IcapChunkSeparator implements ChannelDownstreamHandler {
 	public IcapChunkSeparator(int chunkSize) {
 		this.chunkSize = chunkSize;
 	}
-	
+
 	@Override
-	public void handleDownstream(ChannelHandlerContext ctx, ChannelEvent e) throws Exception {
-		if (e instanceof MessageEvent) {
-			MessageEvent msgEvent = (MessageEvent)e;
-			Object msg = msgEvent.getMessage();
-	    	if(msg instanceof IcapMessage) {
-	    		LOG.debug("Separation of message [" + msg.getClass().getName() + "] ");
-	    		IcapMessage message = (IcapMessage)msg;
-	    		ByteBuf content = extractContentFromMessage(message);
-	    		fireDownstreamEvent(ctx,message,msgEvent);
-	    		if(content != null) {
-	    			boolean isPreview = message.isPreviewMessage();
-	    			boolean isEarlyTerminated = false;
-	    			if(isPreview) {
-	    				isEarlyTerminated = content.readableBytes() < message.getPreviewAmount();
-	    			}
-					while(content.readableBytes() > 0) {
-						IcapChunk chunk = null;
-						if(content.readableBytes() > chunkSize) {
-							chunk = new DefaultIcapChunk(content.readBytes(chunkSize));
-						} else {
-							chunk = new DefaultIcapChunk(content.readBytes(content.readableBytes()));
-						}
-						chunk.setPreviewChunk(isPreview);
-						chunk.setEarlyTermination(isEarlyTerminated);
-						fireDownstreamEvent(ctx,chunk,msgEvent);
-						if(chunk.isLast() | content.readableBytes() <= 0) {
-							IcapChunkTrailer trailer = new DefaultIcapChunkTrailer();
-							trailer.setPreviewChunk(isPreview);
-							trailer.setEarlyTermination(isEarlyTerminated);
-							fireDownstreamEvent(ctx,trailer,msgEvent);
-						}
+	public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+		if(msg instanceof IcapMessage) {
+			LOG.debug("Separation of message [" + msg.getClass().getName() + "] ");
+			IcapMessage message = (IcapMessage)msg;
+			ByteBuf content = extractContentFromMessage(message);
+			ctx.writeAndFlush(message, promise);
+			if(content != null) {
+				boolean isPreview = message.isPreviewMessage();
+				boolean isEarlyTerminated = false;
+				if(isPreview) {
+					isEarlyTerminated = content.readableBytes() < message.getPreviewAmount();
+				}
+				while(content.readableBytes() > 0) {
+					IcapChunk chunk;
+					if(content.readableBytes() > chunkSize) {
+						chunk = new DefaultIcapChunk(content.readBytes(chunkSize));
+					} else {
+						chunk = new DefaultIcapChunk(content.readBytes(content.readableBytes()));
 					}
-	    		}
-	    	} else {
-	    		ctx.sendDownstream(e);
-	    	}
+					chunk.setPreviewChunk(isPreview);
+					chunk.setEarlyTermination(isEarlyTerminated);
+					ctx.writeAndFlush(chunk, promise);
+					if(!chunk.content().isReadable() | content.readableBytes() <= 0) {
+						IcapChunkTrailer trailer = new DefaultIcapChunkTrailer();
+						trailer.setPreviewChunk(isPreview);
+						trailer.setEarlyTermination(isEarlyTerminated);
+						ctx.write(ctx, promise);
+					}
+				}
+			}
 		} else {
-			ctx.sendDownstream(e);
+			ctx.write(msg);
 		}
 	}
     
@@ -99,19 +91,13 @@ public class IcapChunkSeparator implements ChannelDownstreamHandler {
 			if(content != null) {
 				message.setBody(IcapMessageElementEnum.OPTBODY);
 			}
-		} else if(message.getHttpRequest() != null && message.getHttpRequest().getContent() != null && message.getHttpRequest().getContent().readableBytes() > 0) {
-			content = message.getHttpRequest().getContent();
+		} else if(message.getHttpRequest() != null && message.getHttpRequest().content() != null && message.getHttpRequest().content().readableBytes() > 0) {
+			content = message.getHttpRequest().content();
 			message.setBody(IcapMessageElementEnum.REQBODY);
-		} else if(message.getHttpResponse() != null && message.getHttpResponse().getContent() != null && message.getHttpResponse().getContent().readableBytes() > 0) {
-			content = message.getHttpResponse().getContent();
+		} else if(message.getHttpResponse() != null && message.getHttpResponse().content() != null && message.getHttpResponse().content().readableBytes() > 0) {
+			content = message.getHttpResponse().content();
 			message.setBody(IcapMessageElementEnum.RESBODY);
 		}
 		return content;
 	}
-	
-    private void fireDownstreamEvent(ChannelHandlerContext ctx, Object message, MessageEvent messageEvent) {
-    	DownstreamMessageEvent downstreamMessageEvent = 
-    		new DownstreamMessageEvent(ctx.getChannel(),messageEvent.getFuture(),message,messageEvent.getRemoteAddress());
-    	ctx.sendDownstream(downstreamMessageEvent);
-    }
 }
