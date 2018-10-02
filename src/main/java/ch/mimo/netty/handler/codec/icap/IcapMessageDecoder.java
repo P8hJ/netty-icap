@@ -16,11 +16,12 @@
 package ch.mimo.netty.handler.codec.icap;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ReplayingDecoder;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
+
+import java.util.List;
 
 /**
  * Main ICAP message decoder implementation. this decoder is bases on a @see {@link ReplayingDecoder}
@@ -68,7 +69,7 @@ public abstract class IcapMessageDecoder extends ReplayingDecoder<StateEnum> {
      * @param maxChunkSize
      */
     protected IcapMessageDecoder(int maxInitialLineLength, int maxIcapHeaderSize, int maxHttpHeaderSize, int maxChunkSize) {
-        super(StateEnum.SKIP_CONTROL_CHARS,true);
+		super(StateEnum.SKIP_CONTROL_CHARS);
         LOG = InternalLoggerFactory.getInstance(getClass());
         if (maxInitialLineLength <= 0) {
             throw new IllegalArgumentException("maxInitialLineLength must be a positive integer: " + maxInitialLineLength);
@@ -90,30 +91,30 @@ public abstract class IcapMessageDecoder extends ReplayingDecoder<StateEnum> {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
-	protected Object decode(ChannelHandlerContext ctx, Channel channel, ByteBuf buffer, StateEnum stateEnumValue) throws Exception {
+	protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
+    	StateEnum stateEnumValue = state();
 		if(stateEnumValue != null) {
 			try {
 				State state = stateEnumValue.getState();
 				LOG.debug("Executing state [" + state + ']');
-				state.onEntry(buffer,this);
-				StateReturnValue returnValue = state.execute(buffer,this);
+				state.onEntry(in,this);
+				StateReturnValue returnValue = state.execute(in,this);
 				LOG.debug("Return value from state [" + state + "] = [" + returnValue + "]");
-				StateEnum nextState = state.onExit(buffer,this,returnValue.getDecisionInformation());
+				StateEnum nextState = state.onExit(in,this,returnValue.getDecisionInformation());
 				LOG.debug("Next State [" + nextState + "]");
 				if(nextState != null) {
 					checkpoint(nextState);
 				} else {
 					reset();
-				}
+				}SK
 				if(returnValue.isRelevant()) {
-					return returnValue.getValue();
+					out.add(returnValue.getValue());
 				}
 			} catch(DecodingException e) {
 				reset();
 				throw e;
 			}
 		}
-		return null;
 	}
 	
 	/**
