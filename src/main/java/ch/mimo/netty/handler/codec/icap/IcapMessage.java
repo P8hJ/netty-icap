@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 
@@ -136,13 +138,13 @@ public interface IcapMessage {
     /**
      * @return the actual http request instance @see {@link HttpRequest}
      */
-	HttpRequest getHttpRequest();
+	FullHttpRequest getHttpRequest();
 	
 	/**
 	 * @param httpRequest
 	 * @return self in order to chain the method calls
 	 */
-	IcapMessage setHttpRequest(HttpRequest httpRequest);
+	IcapMessage setHttpRequest(FullHttpRequest httpRequest);
 	
 	/**
 	 * @return true if a http response was delivered.
@@ -152,7 +154,7 @@ public interface IcapMessage {
 	/**
 	 * @return the actual http response instance @see {@link HttpResponse}
 	 */
-	HttpResponse getHttpResponse();
+	FullHttpResponse getHttpResponse();
 	
 	/**
 	 * Adds a @see {@link HttpResponse} to the Icap message.
@@ -160,7 +162,7 @@ public interface IcapMessage {
 	 * @param response the @see {@link HttpResponse}
 	 * @return self in order to chain the method calls
 	 */
-	IcapMessage setHttpResponse(HttpResponse response);
+	IcapMessage setHttpResponse(FullHttpResponse response);
 	
 	/**
 	 * Sets the @see {@link Encapsulated} Encapsulation header for this message

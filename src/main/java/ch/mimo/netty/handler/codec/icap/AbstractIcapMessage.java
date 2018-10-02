@@ -19,8 +19,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.util.internal.StringUtil;
 
 /**
@@ -36,8 +36,8 @@ public abstract class AbstractIcapMessage implements IcapMessage {
 	private IcapVersion version;
 	private Encapsulated encapsulated;
 	
-	private HttpRequest httpRequest;
-	private HttpResponse httpResponse;
+	private FullHttpRequest httpRequest;
+	private FullHttpResponse httpResponse;
 	
 	private IcapMessageElementEnum body;
 	
@@ -123,12 +123,12 @@ public abstract class AbstractIcapMessage implements IcapMessage {
 	}
 
 	@Override
-	public HttpRequest getHttpRequest() {
+	public FullHttpRequest getHttpRequest() {
 		return httpRequest;
 	}
 	
 	@Override
-	public IcapMessage setHttpRequest(HttpRequest httpRequest) {
+	public IcapMessage setHttpRequest(FullHttpRequest httpRequest) {
 		this.httpRequest = httpRequest;
 		return this;
 	}
@@ -139,11 +139,11 @@ public abstract class AbstractIcapMessage implements IcapMessage {
 	}
 
 	@Override
-	public HttpResponse getHttpResponse() {
+	public FullHttpResponse getHttpResponse() {
 		return httpResponse;
 	}
 	
-	public IcapMessage setHttpResponse(HttpResponse response) {
+	public IcapMessage setHttpResponse(FullHttpResponse response) {
 		this.httpResponse = response;
 		return this;
 	}
@@ -190,16 +190,16 @@ public abstract class AbstractIcapMessage implements IcapMessage {
         if(httpRequest != null) {
         	buf.append("--- encapsulated HTTP Request ---").append(StringUtil.NEWLINE);
         	buf.append(httpRequest.toString());
-        	if(httpRequest.getContent() != null && httpRequest.getContent().readableBytes() > 0) {
-        		buf.append(StringUtil.NEWLINE).append("--> HTTP Request contains [" + httpRequest.getContent().readableBytes() + "] bytes of data").append(StringUtil.NEWLINE);
+        	if(httpRequest.content() != null && httpRequest.content().readableBytes() > 0) {
+        		buf.append(StringUtil.NEWLINE).append("--> HTTP Request contains [" + httpRequest.content().readableBytes() + "] bytes of data").append(StringUtil.NEWLINE);
         	}
         }
         
         if(httpResponse != null) {
         	buf.append("--- encapsulated HTTP Response ---").append(StringUtil.NEWLINE);
         	buf.append(httpResponse.toString());
-        	if(httpResponse.getContent() != null && httpResponse.getContent().readableBytes() > 0) {
-        		buf.append(StringUtil.NEWLINE).append("--> HTTP Response contains [" + httpResponse.getContent().readableBytes() + "] bytes of data").append(StringUtil.NEWLINE);;
+        	if(httpResponse.content() != null && httpResponse.content().readableBytes() > 0) {
+        		buf.append(StringUtil.NEWLINE).append("--> HTTP Response contains [" + httpResponse.content().readableBytes() + "] bytes of data").append(StringUtil.NEWLINE);;
         	}
         }
         
