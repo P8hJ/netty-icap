@@ -15,10 +15,9 @@
  ******************************************************************************/
 package ch.mimo.netty.example.icap.preview;
 
-import io.netty.buffer.ChannelBuffers;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.MessageEvent;
-import io.netty.channel.SimpleChannelUpstreamHandler;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 
 import ch.mimo.netty.handler.codec.icap.DefaultIcapChunk;
 import ch.mimo.netty.handler.codec.icap.DefaultIcapChunkTrailer;
@@ -27,17 +26,17 @@ import ch.mimo.netty.handler.codec.icap.IcapChunkTrailer;
 import ch.mimo.netty.handler.codec.icap.IcapResponse;
 import ch.mimo.netty.handler.codec.icap.IcapResponseStatus;
 
-public class IcapClientHandler extends SimpleChannelUpstreamHandler {
-	
+public class IcapClientHandler extends ChannelInboundHandlerAdapter {
+
 	@Override
-	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
-		IcapResponse response = (IcapResponse)e.getMessage();
+	public void channelRead(ChannelHandlerContext ctx, Object msg) {
+		IcapResponse response = (IcapResponse)msg;
 		if(response.getStatus().equals(IcapResponseStatus.CONTINUE)) {
 			System.out.println(response.toString());
-	        IcapChunk chunk = new DefaultIcapChunk(ChannelBuffers.copiedBuffer("ns why and how we can avoid such a desaster next time...".getBytes()));
+	        IcapChunk chunk = new DefaultIcapChunk(Unpooled.wrappedBuffer("ns why and how we can avoid such a desaster next time...".getBytes()));
 	        IcapChunkTrailer trailer = new DefaultIcapChunkTrailer(true,false);
-	        ctx.getChannel().write(chunk);
-	        ctx.getChannel().write(trailer);
+	        ctx.write(chunk);
+	        ctx.writeAndFlush(trailer);
 		} else if(response.getStatus().equals(IcapResponseStatus.NO_CONTENT)) {
 			System.out.println(response.toString());
 		}
