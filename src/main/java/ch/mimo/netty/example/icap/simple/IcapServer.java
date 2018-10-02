@@ -15,11 +15,10 @@
  ******************************************************************************/
 package ch.mimo.netty.example.icap.simple;
 
-import java.net.InetSocketAddress;
-import java.util.concurrent.Executors;
-
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.socket.oio.OioServerSocketChannelFactory;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.oio.OioEventLoopGroup;
+import io.netty.channel.socket.oio.OioServerSocketChannel;
 
 /**
  * An ICAP Server that prints the request and sends back the content of the request that was receveid.
@@ -32,15 +31,14 @@ public class IcapServer {
 
 	public static void main(String[] args) {
         // Configure the server.
-        ServerBootstrap bootstrap = new ServerBootstrap(
-                new OioServerSocketChannelFactory(
-                        Executors.newCachedThreadPool(),
-                        Executors.newCachedThreadPool()));
-
-        // Set up the event pipeline factory.
-        bootstrap.setPipelineFactory(new IcapServerChannelPipeline());
-
-        // Bind and start to accept incoming connections.
-        bootstrap.bind(new InetSocketAddress(8099));
+        EventLoopGroup bossGroup = new OioEventLoopGroup();
+        EventLoopGroup workerGroup = new OioEventLoopGroup();
+        ServerBootstrap bootstrap = new ServerBootstrap();
+        bootstrap
+            .group(bossGroup, workerGroup)
+            .channel(OioServerSocketChannel.class)
+            .localAddress(8099)
+            .childHandler(new IcapServerChannelPipeline())
+            .bind();
 	}
 }

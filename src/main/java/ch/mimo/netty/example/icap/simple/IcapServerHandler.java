@@ -19,8 +19,7 @@ import java.nio.charset.Charset;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.MessageEvent;
-import io.netty.channel.SimpleChannelUpstreamHandler;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.HttpHeaders;
 
 import ch.mimo.netty.handler.codec.icap.DefaultIcapResponse;
@@ -32,11 +31,11 @@ import ch.mimo.netty.handler.codec.icap.IcapResponse;
 import ch.mimo.netty.handler.codec.icap.IcapResponseStatus;
 import ch.mimo.netty.handler.codec.icap.IcapVersion;
 
-public class IcapServerHandler extends SimpleChannelUpstreamHandler {
+public class IcapServerHandler extends ChannelInboundHandlerAdapter {
 
 	@Override
-	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
-		IcapRequest request = (IcapRequest)e.getMessage();
+	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+		IcapRequest request = (IcapRequest) msg;
 		
 		System.out.println(request.toString());
 		
@@ -46,12 +45,12 @@ public class IcapServerHandler extends SimpleChannelUpstreamHandler {
 			bodyType = IcapMessageElementEnum.NULLBODY;
 		}
 		
-		if(!request.getMethod().equals(IcapMethod.RESPMOD) & request.getHttpRequest() != null) {
-			request.getHttpRequest().addHeader(HttpHeaders.Names.VIA,"icap://my.icap.server");
+		if(!request.getMethod().equals(IcapMethod.RESPMOD) && request.getHttpRequest() != null) {
+			request.getHttpRequest().headers().add(HttpHeaders.Names.VIA,"icap://my.icap.server");
 			response.setHttpRequest(request.getHttpRequest());
 		}
 		if(request.getHttpResponse() != null) {
-			request.getHttpResponse().addHeader(HttpHeaders.Names.VIA,"icap://my.icap.server");
+			request.getHttpResponse().headers().add(HttpHeaders.Names.VIA,"icap://my.icap.server");
 			response.setHttpResponse(request.getHttpResponse());
 		}
 		response.addHeader(IcapHeaders.Names.ISTAG,"SimpleServer-version-1.0");
@@ -63,11 +62,11 @@ public class IcapServerHandler extends SimpleChannelUpstreamHandler {
 			break;
 		case REQBODY:
 			// http request body in request
-			buffer = request.getHttpRequest().getContent();
+			buffer = request.getHttpRequest().content();
 			break;
 		case RESBODY:
 			// http response body in request
-			buffer = request.getHttpResponse().getContent();
+			buffer = request.getHttpResponse().content();
 			break;
 		default:
 			// cannot reach here.
@@ -82,8 +81,9 @@ public class IcapServerHandler extends SimpleChannelUpstreamHandler {
 		if(buffer != null) {
 			System.out.println(buffer.toString(Charset.defaultCharset()));
 		}
-		
-		ctx.getChannel().write(response);
+
+		ctx.writeAndFlush(response);
+		ctx.close();
 	}
 
 }

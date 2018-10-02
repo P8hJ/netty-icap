@@ -15,27 +15,25 @@
  ******************************************************************************/
 package ch.mimo.netty.example.icap.simple;
 
-import static io.netty.channel.Channels.pipeline;
-
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.ChannelPipelineFactory;
 
 import ch.mimo.netty.handler.codec.icap.IcapChunkAggregator;
 import ch.mimo.netty.handler.codec.icap.IcapChunkSeparator;
 import ch.mimo.netty.handler.codec.icap.IcapRequestDecoder;
 import ch.mimo.netty.handler.codec.icap.IcapResponseEncoder;
 
-public class IcapServerChannelPipeline implements ChannelPipelineFactory {
+public class IcapServerChannelPipeline extends ChannelInitializer {
 
     @Override
-    public ChannelPipeline getPipeline() throws Exception {
-        ChannelPipeline pipeline = pipeline();
+    protected void initChannel(Channel ch) {
+        ChannelPipeline pipeline = ch.pipeline();
     	pipeline.addLast("decoder",new IcapRequestDecoder());
     	pipeline.addLast("chunkAggregator",new IcapChunkAggregator(4096));
     	pipeline.addLast("encoder",new IcapResponseEncoder());
     	pipeline.addLast("chunkSeparator",new IcapChunkSeparator(4096));
     	pipeline.addLast("handler",new IcapServerHandler());
-        return pipeline;
     }
-    
+
 }
