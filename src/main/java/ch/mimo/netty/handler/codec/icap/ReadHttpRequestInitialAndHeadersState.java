@@ -54,9 +54,9 @@ public class ReadHttpRequestInitialAndHeadersState extends State<Object> {
 		HttpRequest message = new DefaultHttpRequest(HttpVersion.valueOf(initialLine[2]),HttpMethod.valueOf(initialLine[0]),initialLine[1]);
 		icapMessageDecoder.message.setHttpRequest(message);
 		List<String[]> headerList = IcapDecoderUtil.readHeaders(buffer,icapMessageDecoder.maxHttpHeaderSize);
-		message.clearHeaders();
+		message.headers().clear();
 		for(String[] header : headerList) {
-			message.addHeader(header[0],header[1]);
+			message.headers().add(header[0],header[1]);
 		}
 		Encapsulated encapsulated = icapMessageDecoder.message.getEncapsulatedHeader();
 		encapsulated.setEntryAsProcessed(encapsulated.getNextEntry());
