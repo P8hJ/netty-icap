@@ -15,7 +15,7 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import io.netty.handler.codec.http.HttpChunk;
+import io.netty.handler.codec.http.HttpContent;
 
 /**
  * This is the main ICAP Chunk. In essence it is a @see {@link HttpChunk} with the addition of 
@@ -24,7 +24,7 @@ import io.netty.handler.codec.http.HttpChunk;
  * @author Michael Mimo Moratti (mimo@mimo.ch)
  *
  */
-public interface IcapChunk extends HttpChunk {
+public interface IcapChunk extends HttpContent {
 
 	/**
 	 * Toggles whether this chunk belongs to a preview message.

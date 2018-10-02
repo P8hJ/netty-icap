@@ -16,7 +16,7 @@
 package ch.mimo.netty.handler.codec.icap;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.handler.codec.http.DefaultHttpChunk;
+import io.netty.handler.codec.http.DefaultHttpContent;
 
 /**
  * This is the main Chunk implementation class. It extends @see {@link DefaultHttpChunk} and adds
@@ -25,7 +25,7 @@ import io.netty.handler.codec.http.DefaultHttpChunk;
  * @author Michael Mimo Moratti (mimo@mimo.ch)
  *
  */
-public class DefaultIcapChunk extends DefaultHttpChunk implements IcapChunk {
+public class DefaultIcapChunk extends DefaultHttpContent implements IcapChunk {
 
 	private boolean preview;
 	private boolean earlyTerminated;
@@ -51,6 +51,6 @@ public class DefaultIcapChunk extends DefaultHttpChunk implements IcapChunk {
 	}
 	
 	public String toString() {
-		return "DeafultIcapChunk: [isPreviewChunk=" + preview + "] [wasEarlyTerminated=" + earlyTerminated + "] [data=" + getContent().readableBytes() + "]";
+		return "DeafultIcapChunk: [isPreviewChunk=" + preview + "] [wasEarlyTerminated=" + earlyTerminated + "] [data=" + content().readableBytes() + "]";
 	}
 }
