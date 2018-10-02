@@ -91,7 +91,7 @@ public abstract class IcapMessageDecoder extends ReplayingDecoder<StateEnum> {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
-	protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
+	protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
     	StateEnum stateEnumValue = state();
 		if(stateEnumValue != null) {
 			try {
@@ -106,7 +106,7 @@ public abstract class IcapMessageDecoder extends ReplayingDecoder<StateEnum> {
 					checkpoint(nextState);
 				} else {
 					reset();
-				}SK
+				}
 				if(returnValue.isRelevant()) {
 					out.add(returnValue.getValue());
 				}
