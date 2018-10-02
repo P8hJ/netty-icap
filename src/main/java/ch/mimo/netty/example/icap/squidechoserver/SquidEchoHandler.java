@@ -16,9 +16,7 @@
 package ch.mimo.netty.example.icap.squidechoserver;
 
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ExceptionEvent;
-import io.netty.channel.MessageEvent;
-import io.netty.channel.SimpleChannelUpstreamHandler;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 
 import ch.mimo.netty.handler.codec.icap.DefaultIcapResponse;
 import ch.mimo.netty.handler.codec.icap.IcapHeaders;
@@ -49,12 +47,11 @@ import ch.mimo.netty.handler.codec.icap.IcapVersion;
  * @author Michael Mimo Moratti (mimo@mimo.ch)
  *
  */
-public class SquidEchoHandler extends SimpleChannelUpstreamHandler {
+public class SquidEchoHandler extends ChannelInboundHandlerAdapter {
 
 	@Override
-	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
-		Object message = e.getMessage();
-		IcapResponse response = null;
+	public void channelRead(ChannelHandlerContext ctx, Object message) {
+		IcapResponse response;
 		if(message instanceof IcapRequest) {
 			IcapRequest request = (IcapRequest)message;
 			System.out.println("");
@@ -81,14 +78,14 @@ public class SquidEchoHandler extends SimpleChannelUpstreamHandler {
 			System.out.println("");
 			System.out.println("---------------------------- sending " + response.getStatus() + " ----------------------------");
 			System.out.print(response.toString());
-			ctx.getChannel().write(response);
+			ctx.writeAndFlush(response);
 		}
 	}
-	
+
 	@Override
-	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
+	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
 		System.out.println("");
 		System.out.println("---------------------------- exception ----------------------------");
-		e.getCause().printStackTrace();
+		cause.printStackTrace();
 	}
 }
