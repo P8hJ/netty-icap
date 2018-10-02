@@ -53,7 +53,7 @@ public class IcapChunkSeparator extends ChannelOutboundHandlerAdapter {
 			LOG.debug("Separation of message [" + msg.getClass().getName() + "] ");
 			IcapMessage message = (IcapMessage)msg;
 			ByteBuf content = extractContentFromMessage(message);
-			ctx.writeAndFlush(message, promise);
+			ctx.writeAndFlush(message);
 			if(content != null) {
 				boolean isPreview = message.isPreviewMessage();
 				boolean isEarlyTerminated = false;
@@ -69,12 +69,12 @@ public class IcapChunkSeparator extends ChannelOutboundHandlerAdapter {
 					}
 					chunk.setPreviewChunk(isPreview);
 					chunk.setEarlyTermination(isEarlyTerminated);
-					ctx.writeAndFlush(chunk, promise);
+					ctx.writeAndFlush(chunk);
 					if(!chunk.content().isReadable() | content.readableBytes() <= 0) {
 						IcapChunkTrailer trailer = new DefaultIcapChunkTrailer();
 						trailer.setPreviewChunk(isPreview);
 						trailer.setEarlyTermination(isEarlyTerminated);
-						ctx.write(ctx, promise);
+						ctx.write(ctx);
 					}
 				}
 			}
