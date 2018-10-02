@@ -15,7 +15,7 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import io.netty.handler.codec.http.DefaultHttpChunkTrailer;
+import io.netty.handler.codec.http.DefaultLastHttpContent;
 
 /**
  * This class is used to indicate the end of a chunked data stream and to hold 
@@ -26,7 +26,7 @@ import io.netty.handler.codec.http.DefaultHttpChunkTrailer;
  * @see IcapChunkTrailer implementation.
  *
  */
-public class DefaultIcapChunkTrailer extends DefaultHttpChunkTrailer implements IcapChunkTrailer {
+public class DefaultIcapChunkTrailer extends DefaultLastHttpContent implements IcapChunkTrailer {
 	
 	private boolean preview;
 	private boolean earlyTerminated;
