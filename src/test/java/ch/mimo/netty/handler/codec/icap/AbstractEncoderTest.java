@@ -39,8 +39,8 @@ public abstract class AbstractEncoderTest extends AbstractIcapTest {
 	
 	protected String getBufferContent(Object object) {
 		assertNotNull("poll returned null",object);
-		assertTrue("returned object from embedder is not of type ByteBuf",object instanceof ChannelBuffer);
-		ByteBuf buffer = (ChannelBuffer)object;
+		assertTrue("returned object from embedder is not of type ByteBuf",object instanceof ByteBuf);
+		ByteBuf buffer = (ByteBuf) object;
 		return buffer.toString(Charset.defaultCharset());
 	}
 	

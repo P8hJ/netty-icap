@@ -70,16 +70,16 @@ public class IcapChunkSeparator extends ChannelOutboundHandlerAdapter {
 					chunk.setPreviewChunk(isPreview);
 					chunk.setEarlyTermination(isEarlyTerminated);
 					ctx.writeAndFlush(chunk);
-					if(!chunk.content().isReadable() | content.readableBytes() <= 0) {
+					if(!chunk.content().isReadable() || content.readableBytes() <= 0) {
 						IcapChunkTrailer trailer = new DefaultIcapChunkTrailer();
 						trailer.setPreviewChunk(isPreview);
 						trailer.setEarlyTermination(isEarlyTerminated);
-						ctx.write(ctx);
+						ctx.writeAndFlush(trailer);
 					}
 				}
 			}
 		} else {
-			ctx.write(msg);
+			ctx.writeAndFlush(msg);
 		}
 	}
     

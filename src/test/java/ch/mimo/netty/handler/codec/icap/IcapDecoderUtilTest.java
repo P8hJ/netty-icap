@@ -17,24 +17,24 @@ package ch.mimo.netty.handler.codec.icap;
 
 import java.util.List;
 
+import io.netty.buffer.Unpooled;
 import junit.framework.Assert;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ChannelBuffers;
 import org.junit.Test;
 
 public class IcapDecoderUtilTest extends Assert {
 
 	@Test
 	public void testControlCharacterSkipping() {
-		ByteBuf buffer = ChannelBuffers.copiedBuffer("  TESTLINE".getBytes());
+		ByteBuf buffer = Unpooled.copiedBuffer("  TESTLINE".getBytes());
 		IcapDecoderUtil.skipControlCharacters(buffer);
 		assertEquals("skipping of whitespaces has not worked",'T',(char)buffer.readByte());
 	}
 	
 	@Test
 	public void testSkipControlCharacter() {
-		ByteBuf buffer = ChannelBuffers.copiedBuffer(new byte[]{0x0001,'A'});
+		ByteBuf buffer = Unpooled.copiedBuffer(new byte[]{0x0001,'A'});
 		IcapDecoderUtil.skipControlCharacters(buffer);
 		assertEquals("control character was not skiped",'A',buffer.readByte());
 	}
@@ -42,7 +42,7 @@ public class IcapDecoderUtilTest extends Assert {
 	@Test
 	public void testReadLine() {
 		StringBuilder builder = new StringBuilder("REQMOD icap://icap.mimo.ch:1344/reqmod ICAP/1.0").append(new String(IcapCodecUtil.CRLF)).append("NEW LINE");
-		ByteBuf buffer = ChannelBuffers.copiedBuffer(builder.toString().getBytes());
+		ByteBuf buffer = Unpooled.copiedBuffer(builder.toString().getBytes());
 		String line = null;
 		try {
 			line = IcapDecoderUtil.readLine(buffer,100);
@@ -56,7 +56,7 @@ public class IcapDecoderUtilTest extends Assert {
 	@Test
 	public void testReadLineWithSingleLineBreak() {
 		StringBuilder builder = new StringBuilder("REQMOD icap://icap.mimo.ch:1344/reqmod ICAP/1.0").append(new String(new byte[]{IcapCodecUtil.LF})).append("NEW LINE");
-		ByteBuf buffer = ChannelBuffers.copiedBuffer(builder.toString().getBytes());
+		ByteBuf buffer = Unpooled.copiedBuffer(builder.toString().getBytes());
 		String line = null;
 		try {
 			line = IcapDecoderUtil.readLine(buffer,100);
@@ -70,7 +70,7 @@ public class IcapDecoderUtilTest extends Assert {
 	@Test
 	public void testReadLineMaximumLengthReached() {
 		StringBuilder builder = new StringBuilder("REQMOD icap://icap.mimo.ch:1344/reqmod ICAP/1.0").append(new String(IcapCodecUtil.CRLF)).append("NEW LINE");
-		ByteBuf buffer = ChannelBuffers.copiedBuffer(builder.toString().getBytes());
+		ByteBuf buffer = Unpooled.copiedBuffer(builder.toString().getBytes());
 		boolean exception = false;
 		try {
 			IcapDecoderUtil.readLine(buffer,42);
@@ -83,7 +83,7 @@ public class IcapDecoderUtilTest extends Assert {
 	@Test
 	public void testPreviewLine() {
 		StringBuilder builder = new StringBuilder("REQMOD icap://icap.mimo.ch:1344/reqmod ICAP/1.0").append(new String(IcapCodecUtil.CRLF)).append("NEW LINE");
-		ByteBuf buffer = ChannelBuffers.copiedBuffer(builder.toString().getBytes());
+		ByteBuf buffer = Unpooled.copiedBuffer(builder.toString().getBytes());
 		try {
 			String line = IcapDecoderUtil.previewLine(buffer,100);
 			assertEquals("Line was not identified","REQMOD icap://icap.mimo.ch:1344/reqmod ICAP/1.0",line);
@@ -100,7 +100,7 @@ public class IcapDecoderUtilTest extends Assert {
 	@Test
 	public void testPreviewLineWithSingleLineBreak() {
 		StringBuilder builder = new StringBuilder("REQMOD icap://icap.mimo.ch:1344/reqmod ICAP/1.0").append(new String(new byte[]{IcapCodecUtil.LF})).append("NEW LINE");
-		ByteBuf buffer = ChannelBuffers.copiedBuffer(builder.toString().getBytes());
+		ByteBuf buffer = Unpooled.copiedBuffer(builder.toString().getBytes());
 		try {
 			String line = IcapDecoderUtil.previewLine(buffer,100);
 			assertEquals("Line was not identified","REQMOD icap://icap.mimo.ch:1344/reqmod ICAP/1.0",line);
@@ -117,7 +117,7 @@ public class IcapDecoderUtilTest extends Assert {
 	@Test
 	public void testPreviewLineMaximumLengthReached() {
 		StringBuilder builder = new StringBuilder("REQMOD icap://icap.mimo.ch:1344/reqmod ICAP/1.0").append(new String(IcapCodecUtil.CRLF)).append("NEW LINE");
-		ByteBuf buffer = ChannelBuffers.copiedBuffer(builder.toString().getBytes());
+		ByteBuf buffer = Unpooled.copiedBuffer(builder.toString().getBytes());
 		boolean exception = false;
 		try {
 			IcapDecoderUtil.previewLine(buffer,42);
@@ -198,7 +198,7 @@ public class IcapDecoderUtilTest extends Assert {
 		builder.append((char)IcapCodecUtil.CR).append((char)IcapCodecUtil.LF);
 		builder.append("Host: icap.mimo.ch");
 		builder.append((char)IcapCodecUtil.CR).append((char)IcapCodecUtil.LF);
-		ByteBuf buffer = ChannelBuffers.copiedBuffer(builder.toString().getBytes());
+		ByteBuf buffer = Unpooled.copiedBuffer(builder.toString().getBytes());
 		String header = null;
 		try {
 			SizeDelimiter sizeDelimiter = new SizeDelimiter(200);
@@ -219,7 +219,7 @@ public class IcapDecoderUtilTest extends Assert {
 		builder.append((char)IcapCodecUtil.CR).append((char)IcapCodecUtil.LF);
 		builder.append("Host: icap.mimo.ch");
 		builder.append((char)IcapCodecUtil.CR).append((char)IcapCodecUtil.LF);
-		ByteBuf buffer = ChannelBuffers.copiedBuffer(builder.toString().getBytes());
+		ByteBuf buffer = Unpooled.copiedBuffer(builder.toString().getBytes());
 		boolean exception = false;
 		try {
 			SizeDelimiter sizeDelimiter = new SizeDelimiter(40);
@@ -238,7 +238,7 @@ public class IcapDecoderUtilTest extends Assert {
 		builder.append((char)IcapCodecUtil.CR).append((char)IcapCodecUtil.LF);
 		builder.append((char)IcapCodecUtil.CR).append((char)IcapCodecUtil.LF);
 		builder.append("GET / HTTP/1.1");
-		ByteBuf buffer = ChannelBuffers.copiedBuffer(builder.toString().getBytes());
+		ByteBuf buffer = Unpooled.copiedBuffer(builder.toString().getBytes());
 		String header = null;
 		try {
 			SizeDelimiter sizeDelimiter = new SizeDelimiter(200);
@@ -282,7 +282,7 @@ public class IcapDecoderUtilTest extends Assert {
 		builder.append("Mimo: ;:");
 		builder.append((char)IcapCodecUtil.CR).append((char)IcapCodecUtil.LF);
 		builder.append((char)IcapCodecUtil.CR).append((char)IcapCodecUtil.LF);
-		ByteBuf buffer = ChannelBuffers.copiedBuffer(builder.toString().getBytes());
+		ByteBuf buffer = Unpooled.copiedBuffer(builder.toString().getBytes());
 		List<String[]> headers = IcapDecoderUtil.readHeaders(buffer,400);
 		Assert.assertEquals("wrong amount of header entries in list",2,headers.size());
 		String[] header1 = headers.get(0);
@@ -323,7 +323,7 @@ public class IcapDecoderUtilTest extends Assert {
 		builder.append("\t").append("NonSimpleValue3");
 		builder.append((char)IcapCodecUtil.CR).append((char)IcapCodecUtil.LF);
 		builder.append((char)IcapCodecUtil.CR).append((char)IcapCodecUtil.LF);
-		ByteBuf buffer = ChannelBuffers.copiedBuffer(builder.toString().getBytes());
+		ByteBuf buffer = Unpooled.copiedBuffer(builder.toString().getBytes());
 		try {
 			List<String[]> headers = IcapDecoderUtil.readHeaders(buffer,400);
 			String[] header1 = headers.get(0);

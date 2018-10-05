@@ -18,12 +18,14 @@ package ch.mimo.netty.handler.codec.icap;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 
+import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.http.DefaultFullHttpRequest;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
 import junit.framework.Assert;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ChannelBuffers;
-import io.netty.handler.codec.http.DefaultHttpRequest;
-import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
@@ -38,7 +40,7 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final ByteBuf createWhiteSpacePrefixedOPTIONSRequest() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"  OPTIONS icap://icap.mimo.ch:1344/reqmod ICAP/1.0");
 		addLine(buffer,"Host: icap.google.com:1344");
 		addLine(buffer,"Encapsulated: null-body=0");
@@ -53,7 +55,7 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final ByteBuf createOPTIONSRequest() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"OPTIONS icap://icap.mimo.ch:1344/reqmod ICAP/1.0");
 		addLine(buffer,"Host: icap.google.com:1344");
 		addLine(buffer,"Encapsulated: null-body=0");
@@ -62,7 +64,7 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final ByteBuf createOPTIONSRequestWithoutEncapsulatedHeader() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"OPTIONS icap://icap.mimo.ch:1344/reqmod ICAP/1.0");
 		addLine(buffer,"Host: icap.google.com:1344");
 		addLine(buffer,null);
@@ -81,7 +83,7 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final ByteBuf createOPTIONSRequestWithBody() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"OPTIONS icap://icap.mimo.ch:1344/reqmod ICAP/1.0");
 		addLine(buffer,"Host: icap.google.com:1344");
 		addLine(buffer,"Encapsulated: opt-body=0");
@@ -102,7 +104,7 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final ByteBuf createOPTIONSResponse() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"ICAP/1.0 200 OK");
 		addLine(buffer,"Methods: REQMOD RESPMOD");
 		addLine(buffer,"Service: Joggels icap server 1.0");
@@ -152,12 +154,12 @@ public final class DataMockery extends Assert {
 	public static final IcapResponse createOPTIONSResponseWithBodyAndContentIcapResponse() {
 		IcapResponse response = createOPTIONSIcapResponseWithBody();
 		response.addHeader("Encapsulated","opt-body=0");
-		response.setContent(ChannelBuffers.wrappedBuffer("Hello World".getBytes()));
+		response.setContent(Unpooled.wrappedBuffer("Hello World".getBytes()));
 		return response;
 	}
 	
 	public static final ByteBuf createOPTIONSResponseWithBody() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"ICAP/1.0 200 OK");
 		addLine(buffer,"Methods: REQMOD RESPMOD");
 		addLine(buffer,"Service: Joggels icap server 1.0");
@@ -173,26 +175,26 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final IcapChunk createOPTIONSIcapChunk() {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		buffer.writeBytes("This is a sample Options response body text".getBytes(IcapCodecUtil.ASCII_CHARSET));
 		IcapChunk chunk = new DefaultIcapChunk(buffer);
 		return chunk;
 	}
 	
 	public static final ByteBuf createOPTIONSChunk() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();;
 		addLine(buffer,"2b");
 		addLine(buffer,"This is a sample Options response body text");
 		return buffer;
 	}
 	
 	public static final IcapChunk createOPTIONSLastIcapChunk() {
-		IcapChunk chunk = new DefaultIcapChunk(ChannelBuffers.EMPTY_BUFFER);
+		IcapChunk chunk = new DefaultIcapChunk(Unpooled.buffer(0, 0));
 		return chunk;
 	}
 	
 	public static final ByteBuf createOPTIONSLastChunk() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"0");
 		addLine(buffer,null);
 		return buffer;
@@ -212,13 +214,13 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final ByteBuf createOPTIONSRequestWithBodyBodyChunk() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addChunk(buffer,"This is a options body chunk.");
 		return buffer;
 	}
 	
 	public static final IcapChunk createOPTIONSRequestWithBodyBodyChunkIcapChunk() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		buffer.writeBytes("This is a options body chunk.".getBytes("ASCII"));
 		IcapChunk chunk = new DefaultIcapChunk(buffer);
 		return chunk;
@@ -229,7 +231,7 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final ByteBuf createOPTIONSRequestWithBodyLastChunk() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLastChunk(buffer);
 		return buffer;
 	}
@@ -243,7 +245,7 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final ByteBuf createREQMODWithGetRequestNoBody() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"REQMOD icap://icap.mimo.ch:1344/reqmod ICAP/1.0");
 		addLine(buffer,"Host: icap-server.net");
 		addLine(buffer,"Encapsulated: req-hdr=0, null-body=170");
@@ -260,13 +262,13 @@ public final class DataMockery extends Assert {
 	
 	public static final IcapRequest createREQMODWithGetRequestNoBodyIcapMessage() {
 		IcapRequest request = new DefaultIcapRequest(IcapVersion.ICAP_1_0,IcapMethod.REQMOD,"icap://icap.mimo.ch:1344/reqmod","icap-server.net");
-		HttpRequest httpRequest = new DefaultHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.GET,"/");
+		FullHttpRequest httpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.GET,"/");
 		request.setHttpRequest(httpRequest);
-		httpRequest.addHeader("Host","www.origin-server.com");
-		httpRequest.addHeader("Accept","text/html, text/plain");
-		httpRequest.addHeader("Accept-Encoding","compress");
-		httpRequest.addHeader("Cookie","ff39fk3jur@4ii0e02i");
-		httpRequest.addHeader("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
+		httpRequest.headers().add("Host","www.origin-server.com");
+		httpRequest.headers().add("Accept","text/html, text/plain");
+		httpRequest.headers().add("Accept-Encoding","compress");
+		httpRequest.headers().add("Cookie","ff39fk3jur@4ii0e02i");
+		httpRequest.headers().add("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
 		return request;
 	}
 	
@@ -301,18 +303,18 @@ public final class DataMockery extends Assert {
 		IcapResponse response = new DefaultIcapResponse(IcapVersion.ICAP_1_0,IcapResponseStatus.OK);
 		response.addHeader("Host","icap-server.net");
 		response.addHeader("ISTag","Serial-0815");
-		HttpRequest httpRequest = new DefaultHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.GET,"/");
+		FullHttpRequest httpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.GET,"/");
 		response.setHttpRequest(httpRequest);
-		httpRequest.addHeader("Host","www.origin-server.com");
-		httpRequest.addHeader("Accept","text/html, text/plain");
-		httpRequest.addHeader("Accept-Encoding","compress");
-		httpRequest.addHeader("Cookie","ff39fk3jur@4ii0e02i");
-		httpRequest.addHeader("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
+		httpRequest.headers().add("Host","www.origin-server.com");
+		httpRequest.headers().add("Accept","text/html, text/plain");
+		httpRequest.headers().add("Accept-Encoding","compress");
+		httpRequest.headers().add("Cookie","ff39fk3jur@4ii0e02i");
+		httpRequest.headers().add("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
 		return response;
 	}
 	
 	public static final ByteBuf createREQMODWithGetRequestResponse() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"ICAP/1.0 200 OK");
 		addLine(buffer,"Host: icap-server.net");
 		addLine(buffer,"ISTag: Serial-0815");
@@ -329,7 +331,7 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final ByteBuf createREQMODResponseContainingHttpResponse() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"ICAP/1.0 200 OK");
 		addLine(buffer,"Host: icap-server.net");
 		addLine(buffer,"ISTag: Serial-0815");
@@ -366,13 +368,13 @@ public final class DataMockery extends Assert {
 		IcapResponse response = new DefaultIcapResponse(IcapVersion.ICAP_1_0,IcapResponseStatus.OK);
 		response.addHeader("Host","icap-server.net");
 		response.addHeader("ISTag","Serial-0815");
-		HttpResponse httpResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1,HttpResponseStatus.OK);
+		FullHttpResponse httpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,HttpResponseStatus.OK);
 		response.setHttpResponse(httpResponse);
-		httpResponse.addHeader("Host","www.origin-server.com");
-		httpResponse.addHeader("Accept","text/html, text/plain");
-		httpResponse.addHeader("Accept-Encoding","compress");
-		httpResponse.addHeader("Cookie","ff39fk3jur@4ii0e02i");
-		httpResponse.addHeader("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
+		httpResponse.headers().add("Host","www.origin-server.com");
+		httpResponse.headers().add("Accept","text/html, text/plain");
+		httpResponse.headers().add("Accept-Encoding","compress");
+		httpResponse.headers().add("Cookie","ff39fk3jur@4ii0e02i");
+		httpResponse.headers().add("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
 		return response;
 	}
 	
@@ -395,7 +397,7 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final ByteBuf createRESPMODWithGetRequestNoBody() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"RESPMOD icap://icap.mimo.ch:1344/reqmod ICAP/1.0");
 		addLine(buffer,"Host: icap-server.net");
 		addLine(buffer,"Encapsulated: req-hdr=0, res-hdr=137, null-body=296");
@@ -417,18 +419,18 @@ public final class DataMockery extends Assert {
 	
 	public static final IcapMessage createRESPMODWithGetRequestNoBodyIcapMessage() {
 		IcapRequest request = new DefaultIcapRequest(IcapVersion.ICAP_1_0,IcapMethod.RESPMOD,"icap://icap.mimo.ch:1344/reqmod","icap-server.net");
-		HttpRequest httpRequest = new DefaultHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.GET,"/origin-resource");
+		FullHttpRequest httpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.GET,"/origin-resource");
 		request.setHttpRequest(httpRequest);
-		httpRequest.addHeader("Host","www.origin-server.com");
-		httpRequest.addHeader("Accept","text/html, text/plain, image/gif");
-		httpRequest.addHeader("Accept-Encoding","gzip, compress");
-		HttpResponse httpResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1,HttpResponseStatus.OK);
+		httpRequest.headers().add("Host","www.origin-server.com");
+		httpRequest.headers().add("Accept","text/html, text/plain, image/gif");
+		httpRequest.headers().add("Accept-Encoding","gzip, compress");
+		FullHttpResponse httpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,HttpResponseStatus.OK);
 		request.setHttpResponse(httpResponse);
-		httpResponse.addHeader("Date","Mon, 10 Jan 2000 09:52:22 GMT");
-		httpResponse.addHeader("Server","Apache/1.3.6 (Unix)");
-		httpResponse.addHeader("ETag","\"63840-1ab7-378d415b\"");
-		httpResponse.addHeader("Content-Type","text/html");
-		httpResponse.addHeader("Content-Length","51");
+		httpResponse.headers().add("Date","Mon, 10 Jan 2000 09:52:22 GMT");
+		httpResponse.headers().add("Server","Apache/1.3.6 (Unix)");
+		httpResponse.headers().add("ETag","\"63840-1ab7-378d415b\"");
+		httpResponse.headers().add("Content-Type","text/html");
+		httpResponse.headers().add("Content-Length","51");
 		return request;
 	}
 	
@@ -454,23 +456,23 @@ public final class DataMockery extends Assert {
 		IcapResponse response = new DefaultIcapResponse(IcapVersion.ICAP_1_0,IcapResponseStatus.OK);
 		response.addHeader("Host","icap-server.net");
 		response.addHeader("ISTag","Serial-0815");
-		HttpRequest httpRequest = new DefaultHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.GET,"/origin-resource");
+		FullHttpRequest httpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.GET,"/origin-resource");
 		response.setHttpRequest(httpRequest);
-		httpRequest.addHeader("Host","www.origin-server.com");
-		httpRequest.addHeader("Accept","text/html, text/plain, image/gif");
-		httpRequest.addHeader("Accept-Encoding","gzip, compress");
-		HttpResponse httpResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1,HttpResponseStatus.OK);
+		httpRequest.headers().add("Host","www.origin-server.com");
+		httpRequest.headers().add("Accept","text/html, text/plain, image/gif");
+		httpRequest.headers().add("Accept-Encoding","gzip, compress");
+		FullHttpResponse httpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,HttpResponseStatus.OK);
 		response.setHttpResponse(httpResponse);
-		httpResponse.addHeader("Date","Mon, 10 Jan 2000 09:52:22 GMT");
-		httpResponse.addHeader("Server","Apache/1.3.6 (Unix)");
-		httpResponse.addHeader("ETag","\"63840-1ab7-378d415b\"");
-		httpResponse.addHeader("Content-Type","text/html");
-		httpResponse.addHeader("Content-Length","51");
+		httpResponse.headers().add("Date","Mon, 10 Jan 2000 09:52:22 GMT");
+		httpResponse.headers().add("Server","Apache/1.3.6 (Unix)");
+		httpResponse.headers().add("ETag","\"63840-1ab7-378d415b\"");
+		httpResponse.headers().add("Content-Type","text/html");
+		httpResponse.headers().add("Content-Length","51");
 		return response;
 	}
 	
 	public static final ByteBuf createRESPMODWithGetRequestNoBodyResponse() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"ICAP/1.0 200 OK");
 		addLine(buffer,"Host: icap-server.net");
 		addLine(buffer,"ISTag: Serial-0815");
@@ -517,7 +519,7 @@ public final class DataMockery extends Assert {
 	
 	
 	public static final ByteBuf createRESPMODWithGetRequestNoBodyAndReverseRequestAlignement() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"RESPMOD icap://icap.mimo.ch:1344/reqmod ICAP/1.0");
 		addLine(buffer,"Host: icap-server.net");
 		addLine(buffer,"Encapsulated: res-hdr=0, req-hdr=137, null-body=296");
@@ -557,7 +559,7 @@ public final class DataMockery extends Assert {
 	
 	
 	public static final ByteBuf createREQMODWithTwoChunkBody() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"REQMOD icap://icap.mimo.ch:1344/reqmod ICAP/1.0");
 		addLine(buffer,"Host: icap-server.net");
 		addLine(buffer,"Encapsulated: req-hdr=0, req-body=171");
@@ -576,7 +578,7 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final ByteBuf createREQMODWithImplicitTwoChunkBodyResponse() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"ICAP/1.0 200 OK");
 		addLine(buffer,"Host: icap-server.net");
 		addLine(buffer,"Encapsulated: req-hdr=0, req-body=169");
@@ -609,7 +611,7 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final ByteBuf createREQMODWithTwoChunkBodyAnnouncement() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"REQMOD icap://icap.mimo.ch:1344/reqmod ICAP/1.0");
 		addLine(buffer,"Host: icap-server.net");
 		addLine(buffer,"Encapsulated: req-hdr=0, req-body=171");
@@ -627,13 +629,13 @@ public final class DataMockery extends Assert {
 	public static final IcapMessage createREQMODWithTwoChunkBodyIcapMessage() {
 		IcapRequest request = new DefaultIcapRequest(IcapVersion.ICAP_1_0,IcapMethod.REQMOD,"icap://icap.mimo.ch:1344/reqmod","icap-server.net");
 		request.setBody(IcapMessageElementEnum.REQBODY);
-		HttpRequest httpRequest = new DefaultHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.POST,"/");
+		FullHttpRequest httpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.POST,"/");
 		request.setHttpRequest(httpRequest);
-		httpRequest.addHeader("Host","www.origin-server.com");
-		httpRequest.addHeader("Accept","text/html, text/plain");
-		httpRequest.addHeader("Accept-Encoding","compress");
-		httpRequest.addHeader("Cookie","ff39fk3jur@4ii0e02i");
-		httpRequest.addHeader("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
+		httpRequest.headers().add("Host","www.origin-server.com");
+		httpRequest.headers().add("Accept","text/html, text/plain");
+		httpRequest.headers().add("Accept-Encoding","compress");
+		httpRequest.headers().add("Cookie","ff39fk3jur@4ii0e02i");
+		httpRequest.headers().add("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
 		return request;
 	}
 	
@@ -646,32 +648,32 @@ public final class DataMockery extends Assert {
 	public static final IcapMessage createREQMODWithBodyContentIcapMessage() {
 		IcapMessage request = createREQMODWithTwoChunkBodyIcapMessage();
 		request.addHeader("Encapsulated","req-hdr=0, req-body=171");
-		request.getHttpRequest().setContent(ChannelBuffers.wrappedBuffer("Hello World".getBytes()));
+		request.setHttpRequest(request.getHttpRequest().replace(Unpooled.wrappedBuffer("Hello World".getBytes())));
 		return request;
 	}
 	
 	public static final IcapChunk createREQMODWithTwoChunkBodyIcapChunkOne() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		buffer.writeBytes("This is data that was returned by an origin server.".getBytes("ASCII"));
 		IcapChunk chunk = new DefaultIcapChunk(buffer);
 		return chunk;
 	}
 	
 	public static final ByteBuf createREQMODWithTowChunkBodyChunkOne() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addChunk(buffer,"This is data that was returned by an origin server.");
 		return buffer;
 	}
 	
 	public static final IcapChunk createREQMODWithTwoChunkBodyIcapChunkTwo() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		buffer.writeBytes("And this the second chunk which contains more information.".getBytes("ASCII"));
 		IcapChunk chunk = new DefaultIcapChunk(buffer);
 		return chunk;
 	}
 	
 	public static final ByteBuf createREQMODWithTwoChunkBodyChunkTwo() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addChunk(buffer,"And this the second chunk which contains more information.");
 		return buffer;
 	}
@@ -681,22 +683,22 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final ByteBuf createREQMODWithTwoChunkBodyChunkThree() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLastChunk(buffer);
 		return buffer;
 	}
 	
 	public static final IcapChunkTrailer createREQMODWithTwoChunkBodyChunkThreeIcapChunkTrailer() throws UnsupportedEncodingException {
 		IcapChunkTrailer trailer = new DefaultIcapChunkTrailer();
-		trailer.addHeader("TrailingHeaderKey1","TrailingHeaderValue1");
-		trailer.addHeader("TrailingHeaderKey2","TrailingHeaderValue2");
-		trailer.addHeader("TrailingHeaderKey3","TrailingHeaderValue3");
-		trailer.addHeader("TrailingHeaderKey4","TrailingHeaderValue4");
+		trailer.trailingHeaders().add("TrailingHeaderKey1","TrailingHeaderValue1");
+		trailer.trailingHeaders().add("TrailingHeaderKey2","TrailingHeaderValue2");
+		trailer.trailingHeaders().add("TrailingHeaderKey3","TrailingHeaderValue3");
+		trailer.trailingHeaders().add("TrailingHeaderKey4","TrailingHeaderValue4");
 		return trailer;
 	}
 	
 	public static final ByteBuf createREQMODWithTwoChunkBodyChunkThreeWithTrailer() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"0");
 		addLine(buffer,"TrailingHeaderKey1: TrailingHeaderValue1");
 		addLine(buffer,"TrailingHeaderKey2: TrailingHeaderValue2");
@@ -707,7 +709,7 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final ByteBuf createREQMODWithTwoChunkBodyAndTrailingHeaders() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"REQMOD icap://icap.mimo.ch:1344/reqmod ICAP/1.0");
 		addLine(buffer,"Host: icap-server.net");
 		addLine(buffer,"Encapsulated: req-hdr=0, req-body=171");
@@ -769,13 +771,13 @@ public final class DataMockery extends Assert {
 		response.addHeader("Host","icap-server.net");
 		response.addHeader("ISTag","Serial-0815");
 		response.setBody(IcapMessageElementEnum.REQBODY);
-		HttpRequest httpRequest = new DefaultHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.POST,"/");
+		FullHttpRequest httpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.POST,"/");
 		response.setHttpRequest(httpRequest);
-		httpRequest.addHeader("Host","www.origin-server.com");
-		httpRequest.addHeader("Accept","text/html, text/plain");
-		httpRequest.addHeader("Accept-Encoding","compress");
-		httpRequest.addHeader("Cookie","ff39fk3jur@4ii0e02i");
-		httpRequest.addHeader("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
+		httpRequest.headers().add("Host","www.origin-server.com");
+		httpRequest.headers().add("Accept","text/html, text/plain");
+		httpRequest.headers().add("Accept-Encoding","compress");
+		httpRequest.headers().add("Cookie","ff39fk3jur@4ii0e02i");
+		httpRequest.headers().add("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
 		return response;
 	}
 	
@@ -793,7 +795,7 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final ByteBuf createREQMODWithTwoChunkBodyResponse() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"ICAP/1.0 200 OK");
 		addLine(buffer,"Host: icap-server.net");
 		addLine(buffer,"ISTag: Serial-0815");
@@ -810,7 +812,7 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final ByteBuf createREQMODWithPreview() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"REQMOD icap://icap.mimo.ch:1344/reqmod ICAP/1.0");
 		addLine(buffer,"Host: icap-server.net");
 		addLine(buffer,"Preview: 51");
@@ -829,7 +831,7 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final ByteBuf createREQMODWithPreviewAnnouncement() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"REQMOD icap://icap.mimo.ch:1344/reqmod ICAP/1.0");
 		addLine(buffer,"Host: icap-server.net");
 		addLine(buffer,"Preview: 51");
@@ -849,13 +851,13 @@ public final class DataMockery extends Assert {
 		IcapRequest request = new DefaultIcapRequest(IcapVersion.ICAP_1_0,IcapMethod.REQMOD,"icap://icap.mimo.ch:1344/reqmod","icap-server.net");
 		request.addHeader("Preview","51");
 		request.setBody(IcapMessageElementEnum.REQBODY);
-		HttpRequest httpRequest = new DefaultHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.POST,"/");
+		FullHttpRequest httpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.POST,"/");
 		request.setHttpRequest(httpRequest);
-		httpRequest.addHeader("Host","www.origin-server.com");
-		httpRequest.addHeader("Accept","text/html, text/plain");
-		httpRequest.addHeader("Accept-Encoding","compress");
-		httpRequest.addHeader("Cookie","ff39fk3jur@4ii0e02i");
-		httpRequest.addHeader("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
+		httpRequest.headers().add("Host","www.origin-server.com");
+		httpRequest.headers().add("Accept","text/html, text/plain");
+		httpRequest.headers().add("Accept-Encoding","compress");
+		httpRequest.headers().add("Cookie","ff39fk3jur@4ii0e02i");
+		httpRequest.headers().add("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
 		return request;
 	}
 	
@@ -874,7 +876,7 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final IcapChunk createREQMODWithPreviewIcapChunk() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		buffer.writeBytes("This is data that was returned by an origin server.".getBytes("ASCII"));
 		IcapChunk chunk = new DefaultIcapChunk(buffer);
 		chunk.setPreviewChunk(true);
@@ -882,13 +884,13 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final ByteBuf createREQMODWithPreviewChunk() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addChunk(buffer,"This is data that was returned by an origin server.");
 		return buffer;
 	}
 	
 	public static final IcapChunk createREQMODWithPreview100ContinueIcapChunk() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		buffer.writeBytes("This is the second chunk that is received when 100 continue was sent.".getBytes("ASCII"));
 		IcapChunk chunk = new DefaultIcapChunk(buffer);
 		return chunk;
@@ -903,7 +905,7 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final ByteBuf createREQMODWithPreviewLastChunk() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLastChunk(buffer);
 		return buffer;
 	}
@@ -933,7 +935,7 @@ public final class DataMockery extends Assert {
 	public static final void assertCreateREQMODWithPreviewChunkLastChunk(IcapChunk chunk) {
 		assertTrue("last chunk is wrong type",chunk instanceof IcapChunkTrailer);
 		assertTrue("preview chunk is not marked as such",chunk.isPreviewChunk());
-		assertTrue("preview chunk is not last chunk",chunk.isLast());
+		assertTrue("preview chunk is not last chunk",!chunk.content().isReadable());
 		assertFalse("preview chunk states that it is early terminated",chunk.isEarlyTerminated());
 	}
 	
@@ -942,7 +944,7 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final ByteBuf createREQMODWithEarlyTerminatedPreview() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"REQMOD icap://icap.mimo.ch:1344/reqmod ICAP/1.0");
 		addLine(buffer,"Host: icap-server.net");
 		addLine(buffer,"Preview: 151");
@@ -966,18 +968,18 @@ public final class DataMockery extends Assert {
 		IcapRequest request = new DefaultIcapRequest(IcapVersion.ICAP_1_0,IcapMethod.REQMOD,"icap://icap.mimo.ch:1344/reqmod","icap-server.net");
 		request.addHeader("Preview","151");
 		request.setBody(IcapMessageElementEnum.REQBODY);
-		HttpRequest httpRequest = new DefaultHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.POST,"/");
+		FullHttpRequest httpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.POST,"/");
 		request.setHttpRequest(httpRequest);
-		httpRequest.addHeader("Host","www.origin-server.com");
-		httpRequest.addHeader("Accept","text/html, text/plain");
-		httpRequest.addHeader("Accept-Encoding","compress");
-		httpRequest.addHeader("Cookie","ff39fk3jur@4ii0e02i");
-		httpRequest.addHeader("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
+		httpRequest.headers().add("Host","www.origin-server.com");
+		httpRequest.headers().add("Accept","text/html, text/plain");
+		httpRequest.headers().add("Accept-Encoding","compress");
+		httpRequest.headers().add("Cookie","ff39fk3jur@4ii0e02i");
+		httpRequest.headers().add("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
 		return request;
 	}
 	
 	public static final IcapChunk createREQMODWithEarlyTerminatedPreviewIcapChunk() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		buffer.writeBytes("This is data that was returned by an origin server.".getBytes("ASCII"));
 		IcapChunk chunk = new DefaultIcapChunk(buffer);
 		chunk.setPreviewChunk(true);
@@ -985,27 +987,27 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final ByteBuf createREQMODWithEarlyTerminatedPreviewChunk() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addChunk(buffer,"This is data that was returned by an origin server.");
 		return buffer;
 	}
 	
 	public static final IcapChunk createREQMODWithEarlyTerminatedPreviewLastIcapChunk() throws UnsupportedEncodingException {
-		IcapChunk chunk = new DefaultIcapChunk(ChannelBuffers.EMPTY_BUFFER);
+		IcapChunk chunk = new DefaultIcapChunk(Unpooled.buffer(0, 0));
 		chunk.setPreviewChunk(true);
 		chunk.setEarlyTermination(true);
 		return chunk;
 	}
 	
 	public static final ByteBuf createREQMODWithEarlyTerminatedPreviewLastChunk() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"0; ieof");
 		addLine(buffer,null);
 		return buffer;
 	}
 	
 	public static final ByteBuf createREQMODWithEarlyTerminatedPreviewAnnouncement() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"REQMOD icap://icap.mimo.ch:1344/reqmod ICAP/1.0");
 		addLine(buffer,"Host: icap-server.net");
 		addLine(buffer,"Preview: 151");
@@ -1046,12 +1048,12 @@ public final class DataMockery extends Assert {
 		assertTrue("last chunk is wrong type",chunk instanceof IcapChunkTrailer);
 		assertNotNull("preview last chunk was null",chunk);
 		assertTrue("preview chunk is not marked as such",chunk.isPreviewChunk());
-		assertTrue("preview chunk is not last chunk",chunk.isLast());
+		assertTrue("preview chunk is not last chunk",!chunk.content().isReadable());
 		assertTrue("preview chunk is not early terminated",chunk.isEarlyTerminated());
 	}
 
 	public static final ByteBuf createRESPMODWithGetRequestAndPreview() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"RESPMOD icap://icap.mimo.ch:1344/reqmod ICAP/1.0");
 		addLine(buffer,"Host: icap-server.net");
 		addLine(buffer,"Encapsulated: req-hdr=0, res-hdr=137, res-body=296");
@@ -1075,7 +1077,7 @@ public final class DataMockery extends Assert {
 	}	
 	
 	public static final ByteBuf createRESPMODPreviewWithZeroBody() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"RESPMOD icap://icap.mimo.ch:1344/reqmod ICAP/1.0");
 		addLine(buffer,"Host: icap-server.net");
 		addLine(buffer,"Encapsulated: req-hdr=0, res-hdr=137, res-body=296");
@@ -1102,23 +1104,23 @@ public final class DataMockery extends Assert {
 		request.addHeader("Encapsulated","req-hdr=0, res-hdr=137, res-body=296");
 		request.addHeader("Preview","51");
 		request.setBody(IcapMessageElementEnum.RESBODY);
-		HttpRequest httpRequest = new DefaultHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.GET,"/origin-resource");
+		FullHttpRequest httpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.GET,"/origin-resource");
 		request.setHttpRequest(httpRequest);
-		httpRequest.addHeader("Host","www.origin-server.com");
-		httpRequest.addHeader("Accept","text/html, text/plain, image/gif");
-		httpRequest.addHeader("Accept-Encoding","gzip, compress");
-		HttpResponse httpResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1,HttpResponseStatus.OK);
+		httpRequest.headers().add("Host","www.origin-server.com");
+		httpRequest.headers().add("Accept","text/html, text/plain, image/gif");
+		httpRequest.headers().add("Accept-Encoding","gzip, compress");
+		FullHttpResponse httpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,HttpResponseStatus.OK);
 		request.setHttpResponse(httpResponse);
-		httpResponse.addHeader("Date","Mon, 10 Jan 2000 09:52:22 GMT");
-		httpResponse.addHeader("Server","Apache/1.3.6 (Unix)");
-		httpResponse.addHeader("ETag","\"63840-1ab7-378d415b\"");
-		httpResponse.addHeader("Content-Type","text/html");
-		httpResponse.addHeader("Content-Length","151");
+		httpResponse.headers().add("Date","Mon, 10 Jan 2000 09:52:22 GMT");
+		httpResponse.headers().add("Server","Apache/1.3.6 (Unix)");
+		httpResponse.headers().add("ETag","\"63840-1ab7-378d415b\"");
+		httpResponse.headers().add("Content-Type","text/html");
+		httpResponse.headers().add("Content-Length","151");
 		return request;
 	}
 	
 	public static final IcapChunk createRESPMODWithGetRequestAndPreviewIcapChunk() {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		buffer.writeBytes("This is data that was returned by an origin server.".getBytes(IcapCodecUtil.ASCII_CHARSET));
 		IcapChunk chunk = new DefaultIcapChunk(buffer);
 		chunk.setPreviewChunk(true);
@@ -1132,7 +1134,7 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final IcapChunk createRESPMODWithGetRequestAndPreviewIcapChunkFullMessageChunk() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		buffer.writeBytes("And this the second chunk which contains more information.".getBytes(IcapCodecUtil.ASCII_CHARSET));
 		IcapChunk chunk = new DefaultIcapChunk(buffer);
 		return chunk;
@@ -1163,7 +1165,7 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final ByteBuf createRESPMODWithGetRequestAndPreviewResponse() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"ICAP/1.0 200 OK");
 		addLine(buffer,"Host: icap-server.net");
 		addLine(buffer,"Encapsulated: req-hdr=0, res-hdr=137, res-body=296");
@@ -1215,7 +1217,7 @@ public final class DataMockery extends Assert {
 	public static final void assertCreateRESPMODWithGetRequestAndPreviewLastChunk(IcapChunk chunk) {
 		assertTrue("last chunk is wrong type",chunk instanceof IcapChunkTrailer);
 		assertTrue("preview chunk is not marked as such",chunk.isPreviewChunk());
-		assertTrue("preview chunk is not last chunk",chunk.isLast());
+		assertTrue("preview chunk is not last chunk",!chunk.content().isReadable());
 		assertFalse("preview chunk states that it is early terminated",chunk.isEarlyTerminated());
 	}
 	
@@ -1225,7 +1227,7 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final ByteBuf create100ContinueResponse() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"ICAP/1.0 100 Continue");
 		addLine(buffer,"Encapsulated: null-body=0");
 		addLine(buffer,null);
@@ -1233,7 +1235,7 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final ByteBuf create204NoContentResponse() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"ICAP/1.0 204 NoContent");
 		addLine(buffer,"Encapsulated: null-body=0");
 		addLine(buffer,null);
@@ -1242,21 +1244,20 @@ public final class DataMockery extends Assert {
 	
 	public static final IcapRequest createREQMODWithGetRequestAndDataIcapMessage() {
 		IcapRequest request = new DefaultIcapRequest(IcapVersion.ICAP_1_0,IcapMethod.REQMOD,"icap://icap.mimo.ch:1344/reqmod","icap-server.net");
-		HttpRequest httpRequest = new DefaultHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.GET,"/");
-		request.setHttpRequest(httpRequest);
-		httpRequest.addHeader("Host","www.origin-server.com");
-		httpRequest.addHeader("Accept","text/html, text/plain");
-		httpRequest.addHeader("Accept-Encoding","compress");
-		httpRequest.addHeader("Cookie","ff39fk3jur@4ii0e02i");
-		httpRequest.addHeader("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		buffer.writeBytes("This is data that was returned by an origin server.".getBytes(IcapCodecUtil.ASCII_CHARSET));
-		httpRequest.setContent(buffer);
+		FullHttpRequest httpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.GET,"/", buffer);
+		request.setHttpRequest(httpRequest);
+		httpRequest.headers().add("Host","www.origin-server.com");
+		httpRequest.headers().add("Accept","text/html, text/plain");
+		httpRequest.headers().add("Accept-Encoding","compress");
+		httpRequest.headers().add("Cookie","ff39fk3jur@4ii0e02i");
+		httpRequest.headers().add("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
 		return request;
 	}
 	
 	public static final ByteBuf createREQMODWithGetRequestAndData() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"REQMOD icap://icap.mimo.ch:1344/reqmod ICAP/1.0");
 		addLine(buffer,"Host: icap-server.net");
 		addLine(buffer,"Encapsulated: req-hdr=0, req-body=170");
@@ -1272,13 +1273,13 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final ByteBuf createREQMODWithGetRequestAndDataFirstChunk() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addChunk(buffer,"This is data that was returned by an origin server.");
 		return buffer;
 	}
 	
 	public static final ByteBuf createREQMODWithGetRequestAndDataLastChunk() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLastChunk(buffer);
 		return buffer;
 	}
@@ -1287,16 +1288,15 @@ public final class DataMockery extends Assert {
 		IcapResponse response = new DefaultIcapResponse(IcapVersion.ICAP_1_0,IcapResponseStatus.OK);
 		response.addHeader("Host","icap-server.net");
 		response.addHeader("ISTag","Serial-0815");
-		HttpRequest httpRequest = new DefaultHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.GET,"/");
-		response.setHttpRequest(httpRequest);
-		httpRequest.addHeader("Host","www.origin-server.com");
-		httpRequest.addHeader("Accept","text/html, text/plain");
-		httpRequest.addHeader("Accept-Encoding","compress");
-		httpRequest.addHeader("Cookie","ff39fk3jur@4ii0e02i");
-		httpRequest.addHeader("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		buffer.writeBytes("This is data that was returned by an origin server.".getBytes(IcapCodecUtil.ASCII_CHARSET));
-		httpRequest.setContent(buffer);
+		FullHttpRequest httpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.GET,"/", buffer);
+		response.setHttpRequest(httpRequest);
+		httpRequest.headers().add("Host","www.origin-server.com");
+		httpRequest.headers().add("Accept","text/html, text/plain");
+		httpRequest.headers().add("Accept-Encoding","compress");
+		httpRequest.headers().add("Cookie","ff39fk3jur@4ii0e02i");
+		httpRequest.headers().add("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
 		return response;
 	}
 	
@@ -1304,21 +1304,20 @@ public final class DataMockery extends Assert {
 		IcapRequest request = new DefaultIcapRequest(IcapVersion.ICAP_1_0,IcapMethod.RESPMOD,"icap://icap.mimo.ch:1344/reqmod","icap-server.net");
 		request.addHeader("Preview","51");
 		request.setBody(IcapMessageElementEnum.RESBODY);
-		HttpRequest httpRequest = new DefaultHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.GET,"/origin-resource");
+		FullHttpRequest httpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.GET,"/origin-resource");
 		request.setHttpRequest(httpRequest);
-		httpRequest.addHeader("Host","www.origin-server.com");
-		httpRequest.addHeader("Accept","text/html, text/plain, image/gif");
-		httpRequest.addHeader("Accept-Encoding","gzip, compress");
-		HttpResponse httpResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1,HttpResponseStatus.OK);
-		request.setHttpResponse(httpResponse);
-		httpResponse.addHeader("Date","Mon, 10 Jan 2000 09:52:22 GMT");
-		httpResponse.addHeader("Server","Apache/1.3.6 (Unix)");
-		httpResponse.addHeader("ETag","\"63840-1ab7-378d415b\"");
-		httpResponse.addHeader("Content-Type","text/html");
-		httpResponse.addHeader("Content-Length","151");
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		httpRequest.headers().add("Host","www.origin-server.com");
+		httpRequest.headers().add("Accept","text/html, text/plain, image/gif");
+		httpRequest.headers().add("Accept-Encoding","gzip, compress");
+		ByteBuf buffer = Unpooled.buffer();
 		buffer.writeBytes("This is data that was returned by an origin server.".getBytes(IcapCodecUtil.ASCII_CHARSET));
-		httpResponse.setContent(buffer);
+		FullHttpResponse httpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,HttpResponseStatus.OK, buffer);
+		request.setHttpResponse(httpResponse);
+		httpResponse.headers().add("Date","Mon, 10 Jan 2000 09:52:22 GMT");
+		httpResponse.headers().add("Server","Apache/1.3.6 (Unix)");
+		httpResponse.headers().add("ETag","\"63840-1ab7-378d415b\"");
+		httpResponse.headers().add("Content-Type","text/html");
+		httpResponse.headers().add("Content-Length","151");
 		return request;
 	}
 	
@@ -1326,21 +1325,20 @@ public final class DataMockery extends Assert {
 		IcapRequest request = new DefaultIcapRequest(IcapVersion.ICAP_1_0,IcapMethod.RESPMOD,"icap://icap.mimo.ch:1344/reqmod","icap-server.net");
 		request.addHeader("Preview","51");
 		request.setBody(IcapMessageElementEnum.RESBODY);
-		HttpRequest httpRequest = new DefaultHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.GET,"/origin-resource");
+		FullHttpRequest httpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.GET,"/origin-resource");
 		request.setHttpRequest(httpRequest);
-		httpRequest.addHeader("Host","www.origin-server.com");
-		httpRequest.addHeader("Accept","text/html, text/plain, image/gif");
-		httpRequest.addHeader("Accept-Encoding","gzip, compress");
-		HttpResponse httpResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1,HttpResponseStatus.OK);
-		request.setHttpResponse(httpResponse);
-		httpResponse.addHeader("Date","Mon, 10 Jan 2000 09:52:22 GMT");
-		httpResponse.addHeader("Server","Apache/1.3.6 (Unix)");
-		httpResponse.addHeader("ETag","\"63840-1ab7-378d415b\"");
-		httpResponse.addHeader("Content-Type","text/html");
-		httpResponse.addHeader("Content-Length","151");
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		httpRequest.headers().add("Host","www.origin-server.com");
+		httpRequest.headers().add("Accept","text/html, text/plain, image/gif");
+		httpRequest.headers().add("Accept-Encoding","gzip, compress");
+		ByteBuf buffer = Unpooled.buffer();
 		buffer.writeBytes("This is data that was returned by an orig".getBytes(IcapCodecUtil.ASCII_CHARSET));
-		httpResponse.setContent(buffer);
+		FullHttpResponse httpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,HttpResponseStatus.OK,buffer);
+		request.setHttpResponse(httpResponse);
+		httpResponse.headers().add("Date","Mon, 10 Jan 2000 09:52:22 GMT");
+		httpResponse.headers().add("Server","Apache/1.3.6 (Unix)");
+		httpResponse.headers().add("ETag","\"63840-1ab7-378d415b\"");
+		httpResponse.headers().add("Content-Type","text/html");
+		httpResponse.headers().add("Content-Length","151");
 		return request;
 	}
 	
@@ -1354,14 +1352,14 @@ public final class DataMockery extends Assert {
 		response.addHeader("Allow","204");
 		response.addHeader("Preview","1024");
 		response.addHeader("Opt-body-type","Simple-text");
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		buffer.writeBytes("This is data that was returned by an origin server.".getBytes(IcapCodecUtil.ASCII_CHARSET));
 		response.setContent(buffer);
 		return response;
 	}
 	
 	public static final ByteBuf create204ResponseWithoutEncapsulatedHeader() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"ICAP/1.0 204 No Content");
 		addLine(buffer,"Host: icap-server.net");
 		addLine(buffer,"ISTag: \"209BC533133B6F323892C3A62DFDBEAC\"");
@@ -1374,7 +1372,7 @@ public final class DataMockery extends Assert {
 	}
 	
 	public static final ByteBuf create100ResponseWithoutEncapsulatedHeader() throws UnsupportedEncodingException {
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"ICAP/1.0 100 Continue");
 		addLine(buffer,"Host: icap-server.net");
 		addLine(buffer,null);
@@ -1383,16 +1381,15 @@ public final class DataMockery extends Assert {
 	
 	public static final IcapRequest createREQMODWithPostRequestAndDataIcapMessage() {
 		IcapRequest request = new DefaultIcapRequest(IcapVersion.ICAP_1_0,IcapMethod.REQMOD,"icap://icap.mimo.ch:1344/reqmod","icap-server.net");
-		HttpRequest httpRequest = new DefaultHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.POST,"/");
-		request.setHttpRequest(httpRequest);
-		httpRequest.addHeader("Host","www.origin-server.com");
-		httpRequest.addHeader("Accept","text/html, text/plain");
-		httpRequest.addHeader("Accept-Encoding","compress");
-		httpRequest.addHeader("Cookie","ff39fk3jur@4ii0e02i");
-		httpRequest.addHeader("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		buffer.writeBytes("This is data that was returned by an origin server.".getBytes(IcapCodecUtil.ASCII_CHARSET));
-		httpRequest.setContent(buffer);
+		FullHttpRequest httpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.POST,"/", buffer);
+		request.setHttpRequest(httpRequest);
+		httpRequest.headers().add("Host","www.origin-server.com");
+		httpRequest.headers().add("Accept","text/html, text/plain");
+		httpRequest.headers().add("Accept-Encoding","compress");
+		httpRequest.headers().add("Cookie","ff39fk3jur@4ii0e02i");
+		httpRequest.headers().add("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
 		return request;
 	}
 	
@@ -1407,7 +1404,7 @@ public final class DataMockery extends Assert {
 		assertHttpMessageHeaderValue("Accept-Encoding","compress",message.getHttpRequest());
 		assertHttpMessageHeaderValue("Cookie","ff39fk3jur@4ii0e02i",message.getHttpRequest());
 		assertHttpMessageHeaderValue("If-None-Match","\"xyzzy\", \"r2d2xxxx\"",message.getHttpRequest());
-		assertEquals("http request message content was wrong","This is data that was returned by an origin server.",message.getHttpRequest().getContent().toString(IcapCodecUtil.ASCII_CHARSET));
+		assertEquals("http request message content was wrong","This is data that was returned by an origin server.",message.getHttpRequest().content().toString(IcapCodecUtil.ASCII_CHARSET));
 		assertNull("http response was not null",message.getHttpResponse());
 	}
 	
@@ -1415,16 +1412,15 @@ public final class DataMockery extends Assert {
 		IcapResponse response = new DefaultIcapResponse(IcapVersion.ICAP_1_0,IcapResponseStatus.OK);
 		response.addHeader("Host","icap-server.net");
 		response.addHeader("ISTag","Serial-0815");
-		HttpRequest httpRequest = new DefaultHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.POST,"/");
-		response.setHttpRequest(httpRequest);
-		httpRequest.addHeader("Host","www.origin-server.com");
-		httpRequest.addHeader("Accept","text/html, text/plain");
-		httpRequest.addHeader("Accept-Encoding","compress");
-		httpRequest.addHeader("Cookie","ff39fk3jur@4ii0e02i");
-		httpRequest.addHeader("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
-		ByteBuf buffer = ChannelBuffers.dynamicBuffer();
+		ByteBuf buffer = Unpooled.buffer();
 		buffer.writeBytes("This is data that was returned by an origin server.".getBytes(IcapCodecUtil.ASCII_CHARSET));
-		httpRequest.setContent(buffer);
+		FullHttpRequest httpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.POST,"/",buffer);
+		response.setHttpRequest(httpRequest);
+		httpRequest.headers().add("Host","www.origin-server.com");
+		httpRequest.headers().add("Accept","text/html, text/plain");
+		httpRequest.headers().add("Accept-Encoding","compress");
+		httpRequest.headers().add("Cookie","ff39fk3jur@4ii0e02i");
+		httpRequest.headers().add("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
 		return response;
 	}
 	
@@ -1440,7 +1436,7 @@ public final class DataMockery extends Assert {
 		assertHttpMessageHeaderValue("Accept-Encoding","compress",message.getHttpRequest());
 		assertHttpMessageHeaderValue("Cookie","ff39fk3jur@4ii0e02i",message.getHttpRequest());
 		assertHttpMessageHeaderValue("If-None-Match","\"xyzzy\", \"r2d2xxxx\"",message.getHttpRequest());
-		assertEquals("http request message content was wrong","This is data that was returned by an origin server.",message.getHttpRequest().getContent().toString(IcapCodecUtil.ASCII_CHARSET));
+		assertEquals("http request message content was wrong","This is data that was returned by an origin server.",message.getHttpRequest().content().toString(IcapCodecUtil.ASCII_CHARSET));
 		assertNull("http response was not null",message.getHttpResponse());
 	}
 	
@@ -1476,24 +1472,24 @@ public final class DataMockery extends Assert {
 	
 	private static void assertTrailingHeaderValue(String key, String expected, IcapChunkTrailer message) {
 		assertNotNull("Chunk trailer was null",message);
-		assertTrue("Key does not exist [" + key + "]",message.containsHeader(key));
-		assertEquals("The header: " + key + " is invalid",expected,message.getHeader(key));
+		assertTrue("Key does not exist [" + key + "]",message.trailingHeaders().contains(key));
+		assertEquals("The header: " + key + " is invalid",expected,message.trailingHeaders().get(key));
 	}
 	
 	private static void assertHttpMessageHeaderValue(String key, String expected, HttpMessage message) {
 		assertNotNull("Message was null",message);
-		assertTrue("Key does not exist [" + key + "]",message.containsHeader(key));
-		assertEquals("The header: " + key + " is invalid",expected,message.getHeader(key));
+		assertTrue("Key does not exist [" + key + "]",message.headers().contains(key));
+		assertEquals("The header: " + key + " is invalid",expected,message.headers().get(key));
 	}
 	
 	private static void assertChunk(String title, IcapChunk chunk, String expectedContent, boolean isLast) {
 		assertNotNull(title + " chunk is null",chunk);
 		if(isLast) {
-			assertTrue(title + " is not last chunk",chunk.isLast());
+			assertTrue(title + " is not last chunk",!chunk.content().isReadable());
 		} else {
-			ByteBuf buffer = chunk.getContent();
+			ByteBuf buffer = chunk.content();
 			assertNotNull(title + " chunk buffer is null",buffer);
-			assertFalse(title + " chunk buffer is empty",buffer == ChannelBuffers.EMPTY_BUFFER);
+			assertFalse(title + " chunk buffer is empty",!chunk.content().isReadable());
 			String bufferContent = buffer.toString(Charset.defaultCharset());
 			assertEquals(title + " chunk content was wrong",expectedContent,bufferContent);
 		}
