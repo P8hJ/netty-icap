@@ -15,21 +15,32 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap.socket;
 
-import java.util.concurrent.Executor;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 
-import io.netty.channel.ChannelFactory;
-import io.netty.channel.socket.nio.NioClientSocketChannelFactory;
-import io.netty.channel.socket.nio.NioServerSocketChannelFactory;
+import java.util.concurrent.Executor;
 
 public class NioNioSocketTest extends SocketTests {
 
 	@Override
-	protected ChannelFactory newServerSocketChannelFactory(Executor executor) {
-		return new NioServerSocketChannelFactory(executor, executor);
+	protected Class<NioServerSocketChannel> newServerSocketChannelFactory() {
+		return NioServerSocketChannel.class;
 	}
 
 	@Override
-	protected ChannelFactory newClientSocketChannelFactory(Executor executor) {
-		 return new NioClientSocketChannelFactory(executor, executor);
+	protected Class<NioSocketChannel> newClientSocketChannelFactory() {
+		return NioSocketChannel.class;
 	}
+
+    @Override
+    protected EventLoopGroup newServerEventLoopGroup(Executor executor) {
+        return new NioEventLoopGroup(1, executor);
+    }
+
+    @Override
+    protected EventLoopGroup newClientEventLoopGroup(Executor executor) {
+        return new NioEventLoopGroup(1, executor);
+    }
 }

@@ -23,6 +23,4 @@ public interface Handler {
 	Throwable getExceptionCause();
 	
 	boolean isProcessed();
-	
-	void close();
 }

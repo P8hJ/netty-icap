@@ -15,16 +15,13 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap.socket;
 
-import static io.netty.channel.Channels.write;
-
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ChannelBuffers;
-import io.netty.channel.ChannelDownstreamHandler;
-import io.netty.channel.ChannelEvent;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.MessageEvent;
+import io.netty.channel.ChannelOutboundHandlerAdapter;
+import io.netty.channel.ChannelPromise;
 
-public class TrickleDownstreamHandler implements ChannelDownstreamHandler {
+public class TrickleDownstreamHandler extends ChannelOutboundHandlerAdapter {
 
 	private long latency;
 	private int chunkSize;
@@ -33,24 +30,23 @@ public class TrickleDownstreamHandler implements ChannelDownstreamHandler {
 		this.latency = latency;
 		this.chunkSize = chunkSize;
 	}
-	
+
 	@Override
-	public void handleDownstream(ChannelHandlerContext ctx, ChannelEvent e) throws Exception {
-		if(e instanceof MessageEvent) {
-			MessageEvent event = (MessageEvent)e;
-			ByteBuf buffer = (ChannelBuffer)event.getMessage();
+	public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+		if (msg instanceof ByteBuf) {
+			ByteBuf buffer = (ByteBuf)msg;
 			while(buffer.readableBytes() > 0) {
-				ByteBuf newBuffer = ChannelBuffers.dynamicBuffer();
+				ByteBuf newBuffer = Unpooled.buffer();
 				if(buffer.readableBytes() >= chunkSize) {
 					newBuffer.writeBytes(buffer.readBytes(chunkSize));
 				} else {
 					newBuffer.writeBytes(buffer.readBytes(buffer.readableBytes()));
 				}
 				Thread.sleep(latency);
-				write(ctx, e.getFuture(),newBuffer,event.getRemoteAddress());
+				ctx.writeAndFlush(newBuffer);
 			}
 		} else {
-			ctx.sendDownstream(e);
+			ctx.writeAndFlush(msg);
 		}
 	}
 

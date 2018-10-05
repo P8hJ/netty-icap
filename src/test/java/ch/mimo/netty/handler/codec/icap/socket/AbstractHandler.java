@@ -15,44 +15,28 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap.socket;
 
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelStateEvent;
-import io.netty.channel.ExceptionEvent;
-import io.netty.channel.MessageEvent;
-import io.netty.channel.SimpleChannelUpstreamHandler;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 
-public abstract class AbstractHandler extends SimpleChannelUpstreamHandler implements Handler {
+public abstract class AbstractHandler extends ChannelInboundHandlerAdapter implements Handler {
 
-	private Channel channel;
 	private boolean processed;
 	private boolean exception;
 	
 	private Throwable cause;
-	
-	
+
 	@Override
-	public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
-		super.channelOpen(ctx, e);
-		this.channel = ctx.getChannel();
+	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+		processed = doMessageReceived(ctx, msg);
 	}
 
 	@Override
-	public final void messageReceived(ChannelHandlerContext context, MessageEvent event) throws Exception {
-		processed = doMessageReceived(context,event,channel);
-	}
-	
-	@Override
-	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
-		super.exceptionCaught(ctx, e);
-		cause = e.getCause();
+	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+		super.exceptionCaught(ctx, cause);
+		this.cause = cause;
 		exception = true;
 	}
-	
-	public void close() {
-		this.channel.close().awaitUninterruptibly();
-	}
-	
+
 	public boolean isProcessed() {
 		return processed;
 	}
@@ -65,5 +49,5 @@ public abstract class AbstractHandler extends SimpleChannelUpstreamHandler imple
 		return cause;
 	}
 
-	public abstract boolean doMessageReceived(ChannelHandlerContext context, MessageEvent event, Channel channel) throws Exception;
+	public abstract boolean doMessageReceived(ChannelHandlerContext ctx, Object msg) throws Exception;
 }

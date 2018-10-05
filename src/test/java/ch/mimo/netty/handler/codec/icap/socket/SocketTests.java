@@ -19,9 +19,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.MessageEvent;
 import org.junit.Test;
 
 import ch.mimo.netty.handler.codec.icap.DataMockery;
@@ -35,18 +33,18 @@ public abstract class SocketTests extends AbstractSocketTest {
 	
 	private class SendOPTIONSRequestServerHandler extends AbstractHandler {
 		@Override
-		public boolean doMessageReceived(ChannelHandlerContext context, MessageEvent event, Channel channel) throws Exception {
-			IcapRequest request = (IcapRequest)event.getMessage();
+		public boolean doMessageReceived(ChannelHandlerContext ctx, Object msg) throws Exception {
+			IcapRequest request = (IcapRequest) msg;
 			DataMockery.assertCreateOPTIONSRequest(request);
-			channel.write(DataMockery.createOPTIONSIcapResponse());
+			ctx.writeAndFlush(DataMockery.createOPTIONSIcapResponse());
 			return true;
 		}
 	}
 	
 	private class SendOPTIONSRequestClientHandler extends AbstractHandler {
 		@Override
-		public boolean doMessageReceived(ChannelHandlerContext context, MessageEvent event, Channel channel) throws Exception {
-			IcapResponse response = (IcapResponse)event.getMessage();
+		public boolean doMessageReceived(ChannelHandlerContext ctx, Object msg) throws Exception {
+			IcapResponse response = (IcapResponse) msg;
 			DataMockery.assertOPTIONSResponse(response);
 			return true;
 		}
@@ -60,12 +58,7 @@ public abstract class SocketTests extends AbstractSocketTest {
 	public void sendOPTIONSRequestThroughClassicPipeline() {
 		sendOPTIONSRequest(PipelineType.CLASSIC);
 	}
-	
-	@Test
-	public void sendOPTIONSRequestThroughCodecPipeline() {
-		sendOPTIONSRequest(PipelineType.CODEC);
-	}
-	
+
 	@Test
 	public void sendOPTIONSRequestThroughTricklePipline() {
 		sendOPTIONSRequest(PipelineType.TRICKLE);
@@ -73,18 +66,18 @@ public abstract class SocketTests extends AbstractSocketTest {
 	
 	private class SendRESPMODWithGetRequestNoBodyServerHandler extends AbstractHandler {
 		@Override
-		public boolean doMessageReceived(ChannelHandlerContext context, MessageEvent event, Channel channel) throws Exception {
-			IcapRequest request = (IcapRequest)event.getMessage();
+		public boolean doMessageReceived(ChannelHandlerContext ctx, Object msg) throws Exception {
+			IcapRequest request = (IcapRequest) msg;
 			DataMockery.assertCreateRESPMODWithGetRequestNoBody(request);
-			channel.write(DataMockery.createRESPMODWithGetRequestNoBodyIcapResponse());
+			ctx.writeAndFlush(DataMockery.createRESPMODWithGetRequestNoBodyIcapResponse());
 			return true;
 		}
 	}
 	
 	private class SendRESPMODWithGetRequestNoBodyClientHandler extends AbstractHandler {
 		@Override
-		public boolean doMessageReceived(ChannelHandlerContext context, MessageEvent event, Channel channel) throws Exception {
-			IcapResponse response = (IcapResponse)event.getMessage();
+		public boolean doMessageReceived(ChannelHandlerContext ctx, Object msg) throws Exception {
+			IcapResponse response = (IcapResponse) msg;
 			DataMockery.assertRESPMODWithGetRequestNoBodyResponse(response);
 			return true;
 		}
@@ -100,11 +93,6 @@ public abstract class SocketTests extends AbstractSocketTest {
 	}
 	
 	@Test
-	public void sendRESPMODWithGetRequestNoBodyThroughCodecPipeline() {
-		sendRESPMODWithGetRequestNoBody(PipelineType.CODEC);
-	}
-	
-	@Test
 	public void sendRESPMODWithGetRequestNoBodyThroughTricklePipeline() {
 		sendRESPMODWithGetRequestNoBody(PipelineType.TRICKLE);
 	}
@@ -115,10 +103,9 @@ public abstract class SocketTests extends AbstractSocketTest {
 		boolean secondChunk = false;
 		boolean thirdChunk = false;
 		@Override
-		public boolean doMessageReceived(ChannelHandlerContext context, MessageEvent event, Channel channel) throws Exception {
-			Object msg = event.getMessage();
+		public boolean doMessageReceived(ChannelHandlerContext ctx, Object msg) throws Exception {
 			if(msg instanceof IcapRequest) {
-				IcapRequest request = (IcapRequest)event.getMessage();
+				IcapRequest request = (IcapRequest) msg;
 				DataMockery.assertCreateREQMODWithTwoChunkBody(request);
 				requestMessage = true;
 			} else if(msg instanceof IcapChunk) {
@@ -131,10 +118,10 @@ public abstract class SocketTests extends AbstractSocketTest {
 					secondChunk = true;
 				} else if(firstChunk & secondChunk & !thirdChunk) {
 					DataMockery.assertCreateREQMODWithTwoChunkBodyThirdChunk(chunk);
-					channel.write(DataMockery.createREQMODWithTwoChunkBodyIcapResponse());
-					channel.write(DataMockery.createREQMODWithTwoChunkBodyIcapChunkOne());
-					channel.write(DataMockery.createREQMODWithTwoChunkBodyIcapChunkTwo());
-					channel.write(DataMockery.createREQMODWithTwoChunkBodyIcapChunkThree());
+					ctx.write(DataMockery.createREQMODWithTwoChunkBodyIcapResponse());
+					ctx.write(DataMockery.createREQMODWithTwoChunkBodyIcapChunkOne());
+					ctx.write(DataMockery.createREQMODWithTwoChunkBodyIcapChunkTwo());
+					ctx.writeAndFlush(DataMockery.createREQMODWithTwoChunkBodyIcapChunkThree());
 					thirdChunk = true;
 				}
 			} else {
@@ -147,21 +134,20 @@ public abstract class SocketTests extends AbstractSocketTest {
 	private class SendREQMODWithTwoBodyChunkWithChunkAggregatorInPipelineServerHandler extends AbstractHandler {
 
 		@Override
-		public boolean doMessageReceived(ChannelHandlerContext context, MessageEvent event, Channel channel) throws Exception {
-			Object msg = event.getMessage();
+		public boolean doMessageReceived(ChannelHandlerContext ctx, Object msg) throws Exception {
 			if(msg instanceof IcapRequest) {
-				IcapRequest request = (IcapRequest)event.getMessage();
+				IcapRequest request = (IcapRequest) msg;
 				DataMockery.assertCreateREQMODWithTwoChunkBody(request);
-				ByteBuf contentBuffer = request.getHttpRequest().getContent();
+				ByteBuf contentBuffer = request.getHttpRequest().content();
 				String body = contentBuffer.toString(Charset.forName("ASCII"));
 				StringBuilder builder = new StringBuilder();
 				builder.append("This is data that was returned by an origin server.");
 				builder.append("And this the second chunk which contains more information.");
 				assertEquals("The body content was wrong",builder.toString(),body);
-				channel.write(DataMockery.createREQMODWithTwoChunkBodyIcapResponse());
-				channel.write(DataMockery.createREQMODWithTwoChunkBodyIcapChunkOne());
-				channel.write(DataMockery.createREQMODWithTwoChunkBodyIcapChunkTwo());
-				channel.write(DataMockery.createREQMODWithTwoChunkBodyIcapChunkThree());
+				ctx.write(DataMockery.createREQMODWithTwoChunkBodyIcapResponse());
+				ctx.write(DataMockery.createREQMODWithTwoChunkBodyIcapChunkOne());
+				ctx.write(DataMockery.createREQMODWithTwoChunkBodyIcapChunkTwo());
+				ctx.writeAndFlush(DataMockery.createREQMODWithTwoChunkBodyIcapChunkThree());
 				return true;
 			}
 			return false;
@@ -174,10 +160,9 @@ public abstract class SocketTests extends AbstractSocketTest {
 		boolean secondChunk = false;
 		boolean thirdChunk = false;
 		@Override
-		public boolean doMessageReceived(ChannelHandlerContext context, MessageEvent event, Channel channel) throws Exception {
-			Object msg = event.getMessage();
+		public boolean doMessageReceived(ChannelHandlerContext ctx, Object msg) throws Exception {
 			if(msg instanceof IcapResponse) {
-				IcapResponse response = (IcapResponse)event.getMessage();
+				IcapResponse response = (IcapResponse) msg;
 				DataMockery.assertREQMODWithTwoChunkBodyResponse(response);
 				responseMessage = true;
 			} else if(msg instanceof IcapChunk) {
@@ -227,11 +212,6 @@ public abstract class SocketTests extends AbstractSocketTest {
 	}
 	
 	@Test
-	public void sendREQMODWithTwoBodyChunkThroughCodecPipeline() {
-		sendREQMODWithTwoBodyChunk(PipelineType.CODEC);
-	}
-	
-	@Test
 	public void sendREQMODWithTwoBodyChunkThroughTricklePipeline() {
 		sendREQMODWithTwoBodyChunk(PipelineType.TRICKLE);
 	}
@@ -246,10 +226,9 @@ public abstract class SocketTests extends AbstractSocketTest {
 		boolean firstChunk = false;
 		boolean secondChunk = false;
 		@Override
-		public boolean doMessageReceived(ChannelHandlerContext context, MessageEvent event, Channel channel) throws Exception {
-			Object msg = event.getMessage();
+		public boolean doMessageReceived(ChannelHandlerContext ctx, Object msg) throws Exception {
 			if(msg instanceof IcapRequest) {
-				IcapRequest request = (IcapRequest)event.getMessage();
+				IcapRequest request = (IcapRequest) msg;
 				DataMockery.assertCreateREQMODWithPreview(request);
 				requestMessage = true;
 			} else if(msg instanceof IcapChunk) {
@@ -259,7 +238,7 @@ public abstract class SocketTests extends AbstractSocketTest {
 					firstChunk = true;
 				} else if(firstChunk & !secondChunk) {
 					DataMockery.assertCreateREQMODWithPreviewChunkLastChunk(chunk);
-					channel.write(DataMockery.createREQMODWithPreviewAnnouncement204ResponseIcapMessage());
+					ctx.writeAndFlush(DataMockery.createREQMODWithPreviewAnnouncement204ResponseIcapMessage());
 					secondChunk = true;
 				} 
 			} else {
@@ -272,17 +251,16 @@ public abstract class SocketTests extends AbstractSocketTest {
 	private class SendREQMODWithPreviewAggregatorServerHandler extends AbstractHandler {
 
 		@Override
-		public boolean doMessageReceived(ChannelHandlerContext context, MessageEvent event, Channel channel) throws Exception {
-			Object msg = event.getMessage();
+		public boolean doMessageReceived(ChannelHandlerContext ctx, Object msg) throws Exception {
 			if(msg instanceof IcapRequest) {
-				IcapRequest request = (IcapRequest)event.getMessage();
+				IcapRequest request = (IcapRequest) msg;
 				DataMockery.assertCreateREQMODWithPreview(request);
-				ByteBuf requestBodyBuffer = request.getHttpRequest().getContent();
+				ByteBuf requestBodyBuffer = request.getHttpRequest().content();
 				String body = requestBodyBuffer.toString(Charset.forName("ASCII"));
 				StringBuilder builder = new StringBuilder();
 				builder.append("This is data that was returned by an origin server.");
 				assertEquals("The body content was wrong",builder.toString(),body);
-				channel.write(DataMockery.createREQMODWithPreviewAnnouncement204ResponseIcapMessage());
+				ctx.writeAndFlush(DataMockery.createREQMODWithPreviewAnnouncement204ResponseIcapMessage());
 				return true;
 			} else {
 				fail("unexpected msg instance [" + msg.getClass().getCanonicalName() + "]");
@@ -295,8 +273,7 @@ public abstract class SocketTests extends AbstractSocketTest {
 	private class SendREQMODWithPreviewClientHandler extends AbstractHandler {
 
 		@Override
-		public boolean doMessageReceived(ChannelHandlerContext context, MessageEvent event, Channel channel) throws Exception {
-			Object msg = event.getMessage();
+		public boolean doMessageReceived(ChannelHandlerContext ctx, Object msg) throws Exception {
 			if(msg instanceof IcapResponse) {
 				IcapResponse response = (IcapResponse)msg;
 				DataMockery.assertCreateREQMODWithPreviewAnnouncement204Response(response);
@@ -323,11 +300,6 @@ public abstract class SocketTests extends AbstractSocketTest {
 	}
 	
 	@Test
-	public void sendREQMODWithPreviewThroughCodecPipeline() {
-		sendREQMODWithPreview(PipelineType.CODEC);
-	}
-	
-	@Test
 	public void sendREQMODWithPreviewThroughTricklePipeline() {
 		sendREQMODWithPreview(PipelineType.TRICKLE);
 	}
@@ -350,10 +322,9 @@ public abstract class SocketTests extends AbstractSocketTest {
 		boolean thirdChunk = false;
 		boolean fourthChunk = false;
 		@Override
-		public boolean doMessageReceived(ChannelHandlerContext context, MessageEvent event, Channel channel) throws Exception {
-			Object msg = event.getMessage();
+		public boolean doMessageReceived(ChannelHandlerContext ctx, Object msg) throws Exception {
 			if(msg instanceof IcapRequest) {
-				IcapRequest request = (IcapRequest)event.getMessage();
+				IcapRequest request = (IcapRequest) msg;
 				DataMockery.assertCreateREQMODWithPreview(request);
 				requestMessage = true;
 			} else if(msg instanceof IcapChunk) {
@@ -363,7 +334,7 @@ public abstract class SocketTests extends AbstractSocketTest {
 					firstChunk = true;
 				} else if(firstChunk & !secondChunk) {
 					DataMockery.assertCreateREQMODWithPreviewChunkLastChunk(chunk);
-					channel.write(DataMockery.createREQMODWithPreviewAnnouncement100ContinueIcapMessage());
+					ctx.writeAndFlush(DataMockery.createREQMODWithPreviewAnnouncement100ContinueIcapMessage());
 					secondChunk = true;
 				} else if(firstChunk & secondChunk & !thirdChunk) {
 					DataMockery.assertCreateREQMODWithPreview100ContinueChunk(chunk);
@@ -382,13 +353,12 @@ public abstract class SocketTests extends AbstractSocketTest {
 	private class SendREQMODWithPreviewAndReturn100ContinueClientHandler extends AbstractHandler {
 
 		@Override
-		public boolean doMessageReceived(ChannelHandlerContext context, MessageEvent event, Channel channel) throws Exception {
-			Object msg = event.getMessage();
+		public boolean doMessageReceived(ChannelHandlerContext ctx, Object msg) throws Exception {
 			if(msg instanceof IcapResponse) {
 				IcapResponse response = (IcapResponse)msg;
 				assertEquals("wrong response type",IcapResponseStatus.CONTINUE,response.getStatus());
-				channel.write(DataMockery.createREQMODWithPreview100ContinueIcapChunk());
-				channel.write(DataMockery.createREQMODWithPreview100ContinueLastIcapChunk());
+				ctx.write(DataMockery.createREQMODWithPreview100ContinueIcapChunk());
+				ctx.writeAndFlush(DataMockery.createREQMODWithPreview100ContinueLastIcapChunk());
 				return true;
 			}
 			return false;
@@ -411,11 +381,6 @@ public abstract class SocketTests extends AbstractSocketTest {
 	}
 	
 	@Test
-	public void sendREQMODWithPreviewAndReturn100ContinueCodecPipleline() {
-		sendREQMODWithPreviewAndReturn100Continue(PipelineType.CODEC);
-	}
-	
-	@Test
 	public void sendREQMODWithPreviewAndReturn100ContinueTricklePipleline() {
 		sendREQMODWithPreviewAndReturn100Continue(PipelineType.TRICKLE);
 	}
@@ -426,13 +391,12 @@ public abstract class SocketTests extends AbstractSocketTest {
 		private boolean dataReceived = false;
 		
 		@Override
-		public boolean doMessageReceived(ChannelHandlerContext context, MessageEvent event, Channel channel) throws Exception {
-			Object msg = event.getMessage();
+		public boolean doMessageReceived(ChannelHandlerContext ctx, Object msg) throws Exception {
 			if(msg instanceof IcapRequest) {
 				IcapRequest request = (IcapRequest)msg;
 				requestReceived = true;
-				dataReceived = request.getHttpRequest().getContent().readableBytes() > 0;
-				channel.write(DataMockery.createREQMODWithDataIcapResponse());
+				dataReceived = request.getHttpRequest().content().readableBytes() > 0;
+				ctx.writeAndFlush(DataMockery.createREQMODWithDataIcapResponse());
 			}
 			return requestReceived & dataReceived;
 		}
@@ -445,12 +409,11 @@ public abstract class SocketTests extends AbstractSocketTest {
 		private boolean dataReceived = false;
 		
 		@Override
-		public boolean doMessageReceived(ChannelHandlerContext context, MessageEvent event, Channel channel) throws Exception {
-			Object msg = event.getMessage();
+		public boolean doMessageReceived(ChannelHandlerContext ctx, Object msg) throws Exception {
 			if(msg instanceof IcapResponse) {
 				IcapResponse response = (IcapResponse)msg;
 				responseReceived = true;
-				dataReceived = response.getHttpRequest().getContent().readableBytes() > 0;
+				dataReceived = response.getHttpRequest().content().readableBytes() > 0;
 			}
 			return responseReceived & dataReceived;
 		}
@@ -467,8 +430,7 @@ public abstract class SocketTests extends AbstractSocketTest {
 		private int counter = 0;
 		
 		@Override
-		public boolean doMessageReceived(ChannelHandlerContext context, MessageEvent event, Channel channel) throws Exception {
-			Object msg = event.getMessage();
+		public boolean doMessageReceived(ChannelHandlerContext ctx, Object msg) throws Exception {
 			if(msg instanceof IcapRequest) {
 				IcapRequest request = (IcapRequest)msg;
 				DataMockery.assertCreateREQMODWithPostRequestAndDataIcapRequest(request);
@@ -476,7 +438,7 @@ public abstract class SocketTests extends AbstractSocketTest {
 				if(counter >= 100) {
 					response.addHeader("TEST","END");
 				}
-				channel.write(response);
+				ctx.writeAndFlush(response);
 				counter++;
 			}
 			return counter >= 100;
@@ -489,15 +451,14 @@ public abstract class SocketTests extends AbstractSocketTest {
 		private boolean end;
 		
 		@Override
-		public boolean doMessageReceived(ChannelHandlerContext context, MessageEvent event, Channel channel) throws Exception {
-			Object msg = event.getMessage();
+		public boolean doMessageReceived(ChannelHandlerContext ctx, Object msg) throws Exception {
 			if(msg instanceof IcapResponse) {
 				IcapResponse response = (IcapResponse)msg;
 				DataMockery.assertCreateREQMODWithPostRequestAndDataIcapResponse(response);
 				if(response.containsHeader("TEST")) {
 					end = true;
 				} else {
-					channel.write(DataMockery.createREQMODWithPostRequestAndDataIcapMessage());
+					ctx.writeAndFlush(DataMockery.createREQMODWithPostRequestAndDataIcapMessage());
 				}
 			}
 			return end;
