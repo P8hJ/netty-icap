@@ -322,13 +322,6 @@
 					<debug>true</debug>
 					<optimize>true</optimize>
 					<showDeprecations>true</showDeprecations>
-					<excludes>
-						<exclude>ch/mimo/netty/icap/container/**</exclude>
-					</excludes>
-					<testExcludes>
-						<exclude>**</exclude>
-					</testExcludes>
-
 				</configuration>
 			</plugin>
 			<plugin>
