@@ -159,11 +159,11 @@ public abstract class AbstractSocketTest extends AbstractJDKLoggerPreparation {
         assertTrue(channelFuture.awaitUninterruptibly().isSuccess());
 
         Channel clientChannel = channelFuture.channel();
-        
-        for(Object message : messages) {
-        	ChannelFuture requestFuture = clientChannel.writeAndFlush(message);
-        	assertTrue(requestFuture.awaitUninterruptibly().isSuccess());
-        }
+
+		for (Object message : messages) {
+			clientChannel.write(message);
+		}
+		clientChannel.flush();
 
         while(!clientHandler.isProcessed()) {
         	if(clientHandler.hasException()) {
