@@ -18,10 +18,10 @@ package ch.mimo.netty.handler.codec.icap.socket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
@@ -29,6 +29,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.socket.ServerSocketChannel;
@@ -105,20 +106,25 @@ public abstract class AbstractSocketTest extends AbstractJDKLoggerPreparation {
     protected abstract Class<? extends Channel> newClientSocketChannelFactory();
     protected abstract EventLoopGroup newServerEventLoopGroup(Executor executor);
 	protected abstract EventLoopGroup newClientEventLoopGroup(Executor executor);
+	protected abstract Map<ChannelOption, Object> clientAdditionalChannelOptions();
 
     protected void runSocketTest(AbstractHandler serverHandler, AbstractHandler clientHandler, Object[] messages, PipelineType pipelineType) {
-        long start = System.currentTimeMillis();
-
 		EventLoopGroup serverBossGroup = newServerEventLoopGroup(executor);
 		EventLoopGroup serverWorkerGroup = newServerEventLoopGroup(executor);
     	ServerBootstrap serverBootstrap  = new ServerBootstrap()
 			.channel(newServerSocketChannelFactory())
+			.childOption(ChannelOption.SO_REUSEADDR, true)
+			.childOption(ChannelOption.TCP_NODELAY, true)
 			.group(serverBossGroup, serverWorkerGroup);
 
     	EventLoopGroup clientGroup = newClientEventLoopGroup(executor);
-        Bootstrap clientBootstrap = new Bootstrap()
+        final Bootstrap clientBootstrap = new Bootstrap()
 			.channel(newClientSocketChannelFactory())
+			.option(ChannelOption.TCP_NODELAY, true)
 			.group(clientGroup);
+        for(Map.Entry<ChannelOption, Object> e : clientAdditionalChannelOptions().entrySet()) {
+			clientBootstrap.option(e.getKey(), e.getValue());
+		}
 
         ChannelInitializer serverChannelInitializer = classicServerChannelInitializer(serverHandler);
         ChannelInitializer clientChannelInitializer = classicClientChannelInitializer(clientHandler);
@@ -155,14 +161,10 @@ public abstract class AbstractSocketTest extends AbstractJDKLoggerPreparation {
         Channel clientChannel = channelFuture.channel();
         
         for(Object message : messages) {
-        	ChannelFuture requestFuture = clientChannel.write/*AndFlush*/(message);
-//        	assertTrue(requestFuture.awaitUninterruptibly().isSuccess());
+        	ChannelFuture requestFuture = clientChannel.writeAndFlush(message);
+        	assertTrue(requestFuture.awaitUninterruptibly().isSuccess());
         }
-        clientChannel.flush();
 
-        long timeRequestsDone = System.currentTimeMillis();
-        System.out.println("requests done: " + (timeRequestsDone - start));
-        
         while(!clientHandler.isProcessed()) {
         	if(clientHandler.hasException()) {
         		break;
@@ -185,17 +187,12 @@ public abstract class AbstractSocketTest extends AbstractJDKLoggerPreparation {
             }  
         }
 
-        long busyWait = System.currentTimeMillis();
-        System.out.println("busy wait: " + (busyWait - timeRequestsDone));
         serverChannel.channel().close();
         clientChannel.close();
-        long closeDOne = System.currentTimeMillis();
-        System.out.println("requests done: " + (closeDOne - busyWait));
         // shutdownNow is deprecated and but we do not want to wait at all
         serverBossGroup.shutdownGracefully();
         serverWorkerGroup.shutdownGracefully();
         clientGroup.shutdownGracefully();
-        System.out.println("shtdown done: " + (System.currentTimeMillis() - closeDOne));
 
         if(serverHandler.hasException()) {
         	serverHandler.getExceptionCause().printStackTrace();

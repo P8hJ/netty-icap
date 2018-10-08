@@ -15,11 +15,14 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap.socket;
 
+import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.Executor;
 
 public class NioNioSocketTest extends SocketTests {
@@ -42,5 +45,10 @@ public class NioNioSocketTest extends SocketTests {
     @Override
     protected EventLoopGroup newClientEventLoopGroup(Executor executor) {
         return new NioEventLoopGroup(1, executor);
+    }
+
+    @Override
+    protected Map<ChannelOption, Object> clientAdditionalChannelOptions() {
+        return Collections.emptyMap();
     }
 }
