@@ -132,16 +132,21 @@ public class IcapChunkAggregator extends ChannelInboundHandlerAdapter {
 				ctx.fireChannelRead(message.getIcapMessage());
     			message = null;
     		} else {
-	    		ByteBuf chunkBuffer = chunk.content();
-	    		ByteBuf content = message.getContent();
-    			if(content.readableBytes() > maxContentLength - chunkBuffer.readableBytes()) {
-    				throw new TooLongFrameException("ICAP content length exceeded [" + maxContentLength + "] bytes");
-    			} else {
-    				content.writeBytes(chunkBuffer);
-    				if(resetReaderIndex) {
-    					content.readerIndex(READER_INDEX_RESET_VALUE);
-    				}
-    			}
+				try {
+					ByteBuf chunkBuffer = chunk.content();
+					ByteBuf content = message.getContent();
+					if (content.readableBytes() > maxContentLength - chunkBuffer.readableBytes()) {
+						throw new TooLongFrameException(
+							"ICAP content length exceeded [" + maxContentLength + "] bytes");
+					} else {
+						content.writeBytes(chunkBuffer);
+						if (resetReaderIndex) {
+							content.readerIndex(READER_INDEX_RESET_VALUE);
+						}
+					}
+				} finally {
+					chunk.content().release();
+				}
     		}
     	} else {
     		ctx.fireChannelRead(msg);
