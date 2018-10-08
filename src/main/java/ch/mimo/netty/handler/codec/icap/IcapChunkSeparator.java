@@ -70,7 +70,7 @@ public class IcapChunkSeparator extends ChannelOutboundHandlerAdapter {
 					chunk.setPreviewChunk(isPreview);
 					chunk.setEarlyTermination(isEarlyTerminated);
 					ctx.writeAndFlush(chunk);
-					if(!chunk.content().isReadable() || content.readableBytes() <= 0) {
+					if(chunk.isLast() || content.readableBytes() <= 0) {
 						IcapChunkTrailer trailer = new DefaultIcapChunkTrailer();
 						trailer.setPreviewChunk(isPreview);
 						trailer.setEarlyTermination(isEarlyTerminated);

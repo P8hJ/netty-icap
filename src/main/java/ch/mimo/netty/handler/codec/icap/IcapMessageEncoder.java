@@ -78,7 +78,7 @@ public abstract class IcapMessageEncoder extends MessageToMessageEncoder<Object>
 		} else if(msg instanceof IcapChunk) {
 			ByteBuf buffer = Unpooled.buffer();
 			IcapChunk chunk = (IcapChunk)msg;
-			if(!chunk.content().isReadable()) {
+			if(chunk.isLast()) {
 				if(chunk.isEarlyTerminated()) {
 					buffer.writeBytes(IcapCodecUtil.NATIVE_IEOF_SEQUENCE);
 					buffer.writeBytes(IcapCodecUtil.CRLF);

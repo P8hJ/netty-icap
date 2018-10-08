@@ -15,6 +15,7 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
+import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 
 /**
@@ -61,7 +62,12 @@ public class DefaultIcapChunkTrailer extends DefaultLastHttpContent implements I
 	public boolean isEarlyTerminated() {
 		return earlyTerminated;
 	}
-	
+
+	@Override
+	public boolean isLast() {
+		return true;
+	}
+
 	public String toString() {
 		return "DeafultIcapChunkTrailer: [isPreviewChunk=" + preview + "] [wasEarlyTerminated=" + earlyTerminated + "]";
 	}

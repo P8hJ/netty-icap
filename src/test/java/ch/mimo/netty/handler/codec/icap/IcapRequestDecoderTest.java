@@ -233,7 +233,7 @@ public class IcapRequestDecoderTest extends AbstractIcapTest {
 		assertEquals("chunk 12 has wrong contents","rmation.",chunk12.content().toString(IcapCodecUtil.ASCII_CHARSET));
 		IcapChunk chunk13 = embeddedChannel.readInbound();
 		assertTrue("last chunk is of wrong type",chunk13 instanceof IcapChunkTrailer);
-		assertTrue("last chunk is not marked as such",!chunk13.content().isReadable());
+		assertTrue("last chunk is not marked as such",chunk13.isLast());
 	}
 	
 	@Test
@@ -263,7 +263,7 @@ public class IcapRequestDecoderTest extends AbstractIcapTest {
 		assertTrue("chunk 7 is not marked as preview chunk",chunk7.isPreviewChunk());
 		IcapChunk chunk8 = embeddedChannel.readInbound();
 		assertTrue("last chunk is of wrong type",chunk8 instanceof IcapChunkTrailer);
-		assertTrue("last chunk is not marked as such",!chunk8.content().isReadable());
+		assertTrue("last chunk is not marked as such",chunk8.isLast());
 		assertTrue("last chunk is not marked as preview chunk",chunk8.isPreviewChunk());
 	}
 	

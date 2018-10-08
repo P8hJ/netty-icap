@@ -53,4 +53,6 @@ public interface IcapChunk extends HttpContent {
 	 * @return boolean true if the preview message is early terminated.
 	 */
 	boolean isEarlyTerminated();
+
+	boolean isLast();
 }

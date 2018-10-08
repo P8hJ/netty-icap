@@ -29,9 +29,11 @@ public class DefaultIcapChunk extends DefaultHttpContent implements IcapChunk {
 
 	private boolean preview;
 	private boolean earlyTerminated;
+	private boolean last;
 	
 	public DefaultIcapChunk(ByteBuf content) {
 		super(content);
+		last = !content.isReadable();
 	}
 	
 	public void setPreviewChunk(boolean preview) {
@@ -49,7 +51,12 @@ public class DefaultIcapChunk extends DefaultHttpContent implements IcapChunk {
 	public boolean isEarlyTerminated() {
 		return earlyTerminated;
 	}
-	
+
+	@Override
+	public boolean isLast() {
+		return last;
+	}
+
 	public String toString() {
 		return "DeafultIcapChunk: [isPreviewChunk=" + preview + "] [wasEarlyTerminated=" + earlyTerminated + "] [data=" + content().readableBytes() + "]";
 	}

@@ -125,7 +125,7 @@ public class IcapChunkAggregator extends ChannelInboundHandlerAdapter {
     		IcapChunk chunk = (IcapChunk)msg;
     		if(message == null) {
     			ctx.fireChannelRead(msg);
-    		} else if(!chunk.content().isReadable()) {
+    		} else if(chunk.isLast()) {
     			if(chunk.isEarlyTerminated()) {
     				message.getIcapMessage().removeHeader(IcapHeaders.Names.PREVIEW);
     			}

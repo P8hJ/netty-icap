@@ -27,4 +27,6 @@ import io.netty.handler.codec.http.HttpHeaders;
  */
 public interface IcapChunkTrailer extends IcapChunk {
     HttpHeaders trailingHeaders();
+
+    boolean isLast();
 }

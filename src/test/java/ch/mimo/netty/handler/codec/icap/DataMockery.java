@@ -935,7 +935,7 @@ public final class DataMockery extends Assert {
 	public static final void assertCreateREQMODWithPreviewChunkLastChunk(IcapChunk chunk) {
 		assertTrue("last chunk is wrong type",chunk instanceof IcapChunkTrailer);
 		assertTrue("preview chunk is not marked as such",chunk.isPreviewChunk());
-		assertTrue("preview chunk is not last chunk",!chunk.content().isReadable());
+		assertTrue("preview chunk is not last chunk",chunk.isLast());
 		assertFalse("preview chunk states that it is early terminated",chunk.isEarlyTerminated());
 	}
 	
@@ -1048,7 +1048,7 @@ public final class DataMockery extends Assert {
 		assertTrue("last chunk is wrong type",chunk instanceof IcapChunkTrailer);
 		assertNotNull("preview last chunk was null",chunk);
 		assertTrue("preview chunk is not marked as such",chunk.isPreviewChunk());
-		assertTrue("preview chunk is not last chunk",!chunk.content().isReadable());
+		assertTrue("preview chunk is not last chunk",chunk.isLast());
 		assertTrue("preview chunk is not early terminated",chunk.isEarlyTerminated());
 	}
 
@@ -1217,7 +1217,7 @@ public final class DataMockery extends Assert {
 	public static final void assertCreateRESPMODWithGetRequestAndPreviewLastChunk(IcapChunk chunk) {
 		assertTrue("last chunk is wrong type",chunk instanceof IcapChunkTrailer);
 		assertTrue("preview chunk is not marked as such",chunk.isPreviewChunk());
-		assertTrue("preview chunk is not last chunk",!chunk.content().isReadable());
+		assertTrue("preview chunk is not last chunk",chunk.isLast());
 		assertFalse("preview chunk states that it is early terminated",chunk.isEarlyTerminated());
 	}
 	
@@ -1485,11 +1485,11 @@ public final class DataMockery extends Assert {
 	private static void assertChunk(String title, IcapChunk chunk, String expectedContent, boolean isLast) {
 		assertNotNull(title + " chunk is null",chunk);
 		if(isLast) {
-			assertTrue(title + " is not last chunk",!chunk.content().isReadable());
+			assertTrue(title + " is not last chunk",chunk.isLast());
 		} else {
 			ByteBuf buffer = chunk.content();
 			assertNotNull(title + " chunk buffer is null",buffer);
-			assertFalse(title + " chunk buffer is empty",!chunk.content().isReadable());
+			assertFalse(title + " chunk buffer is empty", Unpooled.EMPTY_BUFFER.equals(buffer));
 			String bufferContent = buffer.toString(Charset.defaultCharset());
 			assertEquals(title + " chunk content was wrong",expectedContent,bufferContent);
 		}

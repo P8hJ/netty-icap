@@ -46,7 +46,7 @@ public class ReadChunkedContentAsChunksState extends State<Object> {
 			icapMessageDecoder.currentChunkSize = 0;
 		}
 		chunk.setPreviewChunk(icapMessageDecoder.message.isPreviewMessage());
-		if (!chunk.content().isReadable()) {
+		if(chunk.isLast()) {
 			icapMessageDecoder.currentChunkSize = 0;
 			return StateReturnValue.createRelevantResult(new Object[]{chunk,new DefaultIcapChunkTrailer()}); 
 		}
