@@ -15,34 +15,22 @@
  ******************************************************************************/
 package ch.mimo.netty.icap.container.osgi;
 
-import io.netty.util.internal.logging.InternalLoggerFactory;
-import io.netty.util.internal.logging.OsgiLoggerFactory;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
 /**
- * OSGI bundle activator. It will set the osgi logging factory.
+ * OSGI bundle activator.
  * 
  * @author Michael Mimo Moratti (mimo@mimo.ch)
  *
  */
 public class NettyIcapBundleActivator implements BundleActivator {
 
-    private OsgiLoggerFactory loggerFactory;
-
     @Override
     public void start(BundleContext ctx) throws Exception {
-        // Switch the internal logger to the OSGi LogService.
-        loggerFactory = new OsgiLoggerFactory(ctx);
-        InternalLoggerFactory.setDefaultFactory(loggerFactory);
     }
 
     @Override
     public void stop(BundleContext ctx) throws Exception {
-        if (loggerFactory != null) {
-            InternalLoggerFactory.setDefaultFactory(loggerFactory.getFallback());
-            loggerFactory.destroy();
-            loggerFactory = null;
-        }
     }
 }
