@@ -50,7 +50,7 @@ public abstract class IcapMessageEncoder extends MessageToMessageEncoder<Object>
 		LOG.debug("Encoding [" + msg.getClass().getName() + "]");
 		if(msg instanceof IcapMessage) {
 			IcapMessage message = (IcapMessage)msg;
-            ByteBuf buffer = Unpooled.buffer();
+            ByteBuf buffer = ctx.alloc().buffer();
 			encodeInitialLine(buffer,message);
 			encodeHeaders(buffer,message);
 			ByteBuf httpRequestBuffer = encodeHttpRequestHeader(message.getHttpRequest());

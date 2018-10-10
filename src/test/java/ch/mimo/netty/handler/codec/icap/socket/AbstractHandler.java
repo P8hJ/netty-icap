@@ -18,6 +18,7 @@ package ch.mimo.netty.handler.codec.icap.socket;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.util.ReferenceCountUtil;
 
 public abstract class AbstractHandler extends ChannelInboundHandlerAdapter implements Handler {
 
@@ -29,6 +30,7 @@ public abstract class AbstractHandler extends ChannelInboundHandlerAdapter imple
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		processed = doMessageReceived(ctx, msg);
+		ReferenceCountUtil.releaseLater(msg);
 	}
 
 	@Override
