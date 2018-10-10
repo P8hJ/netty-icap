@@ -35,7 +35,7 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>ch.mimo</groupId>
+	<groupId>com.eblocker</groupId>
 	<artifactId>netty-icap</artifactId>
 	<packaging>jar</packaging>
 	<version>2.0.0-SNAPSHOT</version>
