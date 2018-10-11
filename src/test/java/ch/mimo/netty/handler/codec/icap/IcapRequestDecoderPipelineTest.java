@@ -19,6 +19,7 @@ package ch.mimo.netty.handler.codec.icap;
 import java.io.UnsupportedEncodingException;
 
 import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.util.ReferenceCountUtil;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -34,7 +35,7 @@ public class IcapRequestDecoderPipelineTest extends AbstractIcapTest {
 	@Test
 	public void decodeREQMODRequestWithoutBody() throws UnsupportedEncodingException {
 		embeddedChannel.writeInbound(DataMockery.createREQMODWithGetRequestNoBody());
-		IcapRequest request = embeddedChannel.readInbound();
+		IcapRequest request = readInbound();
 		assertNotNull("The request object is null",request);
 		DataMockery.assertCreateREQMODWithGetRequestNoBody(request);
 		assertTrue("body found",request.getHttpRequest().content().readableBytes() <= 0);
@@ -43,7 +44,7 @@ public class IcapRequestDecoderPipelineTest extends AbstractIcapTest {
 	@Test
 	public void decodeREQMODRequestWithBody() throws UnsupportedEncodingException {
 		embeddedChannel.writeInbound(DataMockery.createREQMODWithTwoChunkBody());
-		IcapRequest request = embeddedChannel.readInbound();
+		IcapRequest request = readInbound();
 		assertNotNull("The request object is null",request);
 		DataMockery.assertCreateREQMODWithTwoChunkBody(request);
 		assertEquals("body has wrong size",109,request.getHttpRequest().content().readableBytes());
@@ -52,13 +53,17 @@ public class IcapRequestDecoderPipelineTest extends AbstractIcapTest {
 	@Test
 	public void decodeREQMODRequestWithBodyTwice() throws UnsupportedEncodingException {
 		embeddedChannel.writeInbound(DataMockery.createREQMODWithTwoChunkBody());
-		IcapRequest request = embeddedChannel.readInbound();
+		IcapRequest request = readInbound();
 		assertNotNull("The request object is null",request);
 		DataMockery.assertCreateREQMODWithTwoChunkBody(request);
 		assertEquals("body has wrong size",109,request.getHttpRequest().content().readableBytes());
 		embeddedChannel.writeInbound(DataMockery.createREQMODWithTwoChunkBody());
-		request = embeddedChannel.readInbound();
+		request = readInbound();
 		DataMockery.assertCreateREQMODWithTwoChunkBody(request);
 		assertEquals("body has wrong size",109,request.getHttpRequest().content().readableBytes());
+	}
+
+	private <T> T readInbound() {
+		return ReferenceCountUtil.releaseLater((T) embeddedChannel.readInbound());
 	}
 }
