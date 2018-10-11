@@ -168,36 +168,24 @@ public class IcapChunkAggregator extends ChannelInboundHandlerAdapter {
     		this.message = message;
     		if(message.getBodyType() != null) {
 	    		if(message.getBodyType().equals(IcapMessageElementEnum.REQBODY)) {
-	    			relevantHttpMessage = message.getHttpRequest();
+					FullHttpRequest newRequest = message.getHttpRequest().replace(allocator.buffer());
+					message.getHttpRequest().release();
+					relevantHttpMessage = newRequest;
+					message.setHttpRequest(newRequest);
 	    			messageWithBody = true;
 	    		} else if(message.getBodyType().equals(IcapMessageElementEnum.RESBODY)) {
-	    			relevantHttpMessage = message.getHttpResponse();
+					FullHttpResponse newResponse =  message.getHttpResponse().replace(allocator.buffer());
+					message.getHttpResponse().release();
+					relevantHttpMessage = newResponse;
+					message.setHttpResponse(newResponse);
 	    			messageWithBody = true;
 	    		} else if(message instanceof IcapResponse && message.getBodyType().equals(IcapMessageElementEnum.OPTBODY)) {
 	    			icapResponse = (IcapResponse)message;
 	    			messageWithBody = true;
+	    			if (icapResponse.getContent() == null || icapResponse.getContent().readableBytes() <= 0) {
+	    				icapResponse.setContent(allocator.buffer());
+					}
 	    		}
-    		}
-    		if(messageWithBody) {
-    			if(relevantHttpMessage != null) {
-	    			if(relevantHttpMessage.content() == null || relevantHttpMessage.content().readableBytes() <= 0) {
-	    				if (message.getBodyType().equals(IcapMessageElementEnum.REQBODY)) {
-	    					FullHttpRequest newRequest = (FullHttpRequest) relevantHttpMessage.replace(allocator.buffer());
-	    					relevantHttpMessage.release();
-	    					relevantHttpMessage = newRequest;
-							message.setHttpRequest(newRequest);
-						} else {
-							FullHttpResponse newResponse = (FullHttpResponse) relevantHttpMessage.replace(allocator.buffer());
-							relevantHttpMessage.release();
-							relevantHttpMessage = newResponse;
-							message.setHttpResponse(newResponse);
-						}
-	    			}
-    			} else if(icapResponse != null) {
-    				if(icapResponse.getContent() == null || icapResponse.getContent().readableBytes() <= 0) {
-    					icapResponse.setContent(allocator.buffer());
-    				}
-    			}
     		}
     	}
     	
