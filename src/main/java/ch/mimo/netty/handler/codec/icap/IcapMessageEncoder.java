@@ -51,33 +51,44 @@ public abstract class IcapMessageEncoder extends MessageToMessageEncoder<Object>
 		if(msg instanceof IcapMessage) {
 			IcapMessage message = (IcapMessage)msg;
             ByteBuf buffer = ctx.alloc().buffer();
-			encodeInitialLine(buffer,message);
-			encodeHeaders(buffer,message);
-			ByteBuf httpRequestBuffer = encodeHttpRequestHeader(message.getHttpRequest());
-			ByteBuf httpResponseBuffer = encodeHttpResponseHeader(message.getHttpResponse());
+			encodeInitialLine(buffer, message);
+			encodeHeaders(buffer, message);
+
+			Encapsulated encapsulated = new Encapsulated();
             int index = 0;
-            Encapsulated encapsulated = new Encapsulated();
-            if(httpRequestBuffer.readableBytes() > 0) {
-            	encapsulated.addEntry(IcapMessageElementEnum.REQHDR,index);
-            	httpRequestBuffer.writeBytes(IcapCodecUtil.CRLF);
-            	index += httpRequestBuffer.readableBytes();
-            }
-            if(httpResponseBuffer.readableBytes() > 0) {
-            	encapsulated.addEntry(IcapMessageElementEnum.RESHDR,index);
-            	httpResponseBuffer.writeBytes(IcapCodecUtil.CRLF);
-            	index += httpResponseBuffer.readableBytes();
-            }
-            if(message.getBodyType() != null) {
-            	encapsulated.addEntry(message.getBodyType(),index);
-            } else {
-            	encapsulated.addEntry(IcapMessageElementEnum.NULLBODY,index);
-            }
-            encapsulated.encode(buffer);
-            buffer.writeBytes(httpRequestBuffer);
-            buffer.writeBytes(httpResponseBuffer);
-            out.add(buffer);
+
+			ByteBuf httpMessagesBuffer = null;
+			try {
+				httpMessagesBuffer = ctx.alloc().buffer();
+				encodeHttpRequestHeader(httpMessagesBuffer, message.getHttpRequest());
+				if(httpMessagesBuffer.readableBytes() > 0) {
+					encapsulated.addEntry(IcapMessageElementEnum.REQHDR, index);
+					index += httpMessagesBuffer.readableBytes();
+				}
+
+				encodeHttpResponseHeader(httpMessagesBuffer, message.getHttpResponse());
+				if(httpMessagesBuffer.readableBytes() > index) {
+					encapsulated.addEntry(IcapMessageElementEnum.RESHDR, index);
+					index += httpMessagesBuffer.readableBytes() - index;
+				}
+
+				if(message.getBodyType() != null) {
+					encapsulated.addEntry(message.getBodyType(), index);
+				} else {
+					encapsulated.addEntry(IcapMessageElementEnum.NULLBODY, index);
+				}
+
+				encapsulated.encode(buffer);
+				buffer.writeBytes(httpMessagesBuffer);
+				buffer.writeBytes(httpMessagesBuffer);
+				out.add(buffer);
+			} finally {
+				if (httpMessagesBuffer != null) {
+				    httpMessagesBuffer.release();
+                }
+			}
 		} else if(msg instanceof IcapChunk) {
-			ByteBuf buffer = Unpooled.buffer();
+			ByteBuf buffer = ctx.alloc().buffer();
 			IcapChunk chunk = (IcapChunk)msg;
 			if(chunk.isLast()) {
 				if(chunk.isEarlyTerminated()) {
@@ -108,8 +119,7 @@ public abstract class IcapMessageEncoder extends MessageToMessageEncoder<Object>
 
 	protected abstract int encodeInitialLine(ByteBuf buffer, IcapMessage message)  throws Exception;
 	
-	private ByteBuf encodeHttpRequestHeader(HttpRequest httpRequest) throws UnsupportedEncodingException {
-		ByteBuf buffer = Unpooled.buffer();
+	private void encodeHttpRequestHeader(ByteBuf buffer, HttpRequest httpRequest) throws UnsupportedEncodingException {
 		if(httpRequest != null) {
 			buffer.writeBytes(httpRequest.getMethod().toString().getBytes(IcapCodecUtil.ASCII_CHARSET));
 			buffer.writeByte(IcapCodecUtil.SPACE);
@@ -120,12 +130,11 @@ public abstract class IcapMessageEncoder extends MessageToMessageEncoder<Object>
             for (Map.Entry<String, String> h: httpRequest.headers()) {
                 encodeHeader(buffer, h.getKey(), h.getValue());
             }
+			buffer.writeBytes(IcapCodecUtil.CRLF);
 		}
-		return buffer;
 	}
 	
-	private ByteBuf encodeHttpResponseHeader(HttpResponse httpResponse) throws UnsupportedEncodingException {
-		ByteBuf buffer = Unpooled.buffer();
+	private void encodeHttpResponseHeader(ByteBuf buffer, HttpResponse httpResponse) throws UnsupportedEncodingException {
 		if(httpResponse != null) {
 			buffer.writeBytes(httpResponse.getProtocolVersion().toString().getBytes(IcapCodecUtil.ASCII_CHARSET));
 			buffer.writeByte(IcapCodecUtil.SPACE);
@@ -134,8 +143,8 @@ public abstract class IcapMessageEncoder extends MessageToMessageEncoder<Object>
             for (Map.Entry<String, String> h: httpResponse.headers()) {
                 encodeHeader(buffer, h.getKey(), h.getValue());
             }
+			buffer.writeBytes(IcapCodecUtil.CRLF);
 		}
-		return buffer;
 	}
 	
     private int encodeTrailingHeaders(ByteBuf buffer, IcapChunkTrailer chunkTrailer) {
