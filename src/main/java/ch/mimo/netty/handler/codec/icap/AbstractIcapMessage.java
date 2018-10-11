@@ -22,6 +22,7 @@ import java.util.Set;
 
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.util.ReferenceCounted;
 import io.netty.util.internal.StringUtil;
 
 /**
@@ -31,7 +32,9 @@ import io.netty.util.internal.StringUtil;
  * @author Michael Mimo Moratti (mimo@mimo.ch)
  *
  */
-public abstract class AbstractIcapMessage implements IcapMessage {
+public abstract class AbstractIcapMessage implements IcapMessage, ReferenceCounted {
+
+	private volatile int refCount = 1;
 
 	private IcapHeaders icapHeader;
 	private IcapVersion version;
@@ -220,4 +223,78 @@ public abstract class AbstractIcapMessage implements IcapMessage {
             buf.append(StringUtil.NEWLINE);
         }
     }
+
+	@Override
+	public int refCnt() {
+		return refCount;
+	}
+
+	@Override
+	public boolean release() {
+		if (httpRequest != null) {
+			httpRequest.release();
+		}
+		if (httpResponse != null) {
+			httpResponse.release();
+		}
+		return --refCount == 0;
+	}
+
+	@Override
+	public boolean release(int decrement) {
+		if (httpRequest != null) {
+			httpRequest.release(decrement);
+		}
+		if (httpResponse != null) {
+			httpResponse.release(decrement);
+		}
+		refCount -= decrement;
+		return refCount == 0;
+	}
+
+	@Override
+	public AbstractIcapMessage retain() {
+		++refCount;
+		if (httpRequest != null) {
+			httpRequest.retain();
+		}
+		if (httpResponse != null) {
+			httpResponse.retain();
+		}
+		return this;
+	}
+
+	@Override
+	public AbstractIcapMessage retain(int increment) {
+		refCount += increment;
+		if (httpRequest != null) {
+			httpRequest.retain(1);
+		}
+		if (httpResponse != null) {
+			httpResponse.retain(1);
+		}
+		return this;
+	}
+
+	@Override
+	public AbstractIcapMessage touch() {
+		if (httpRequest != null) {
+			httpRequest.touch();
+		}
+		if (httpResponse != null) {
+			httpResponse.touch();
+		}
+		return this;
+	}
+
+	@Override
+	public AbstractIcapMessage touch(Object hint) {
+		if (httpRequest != null) {
+			httpRequest.touch(hint);
+		}
+		if (httpResponse != null) {
+			httpResponse.touch(hint);
+		}
+		return this;
+	}
 }

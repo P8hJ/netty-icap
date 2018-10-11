@@ -54,6 +54,9 @@ public class IcapChunkSeparator extends ChannelOutboundHandlerAdapter {
 			LOG.debug("Separation of message [" + msg.getClass().getName() + "] ");
 			IcapMessage message = (IcapMessage)msg;
 			ByteBuf content = extractContentFromMessage(message);
+			if (content != null) {
+				content.retain();
+			}
 			ctx.write(message);
 			if(content != null) {
 				boolean isPreview = message.isPreviewMessage();
