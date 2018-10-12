@@ -81,6 +81,7 @@ public class IcapChunkSeparator extends ChannelOutboundHandlerAdapter {
 						ctx.write(trailer);
 					}
 				}
+				content.release();
 			}
 			ctx.flush();
 		} else {
