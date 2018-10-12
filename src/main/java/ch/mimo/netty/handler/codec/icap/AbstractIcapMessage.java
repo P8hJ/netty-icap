@@ -22,7 +22,6 @@ import java.util.Set;
 
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.util.ReferenceCounted;
 import io.netty.util.internal.StringUtil;
 
 /**
@@ -32,7 +31,7 @@ import io.netty.util.internal.StringUtil;
  * @author Michael Mimo Moratti (mimo@mimo.ch)
  *
  */
-public abstract class AbstractIcapMessage implements IcapMessage, ReferenceCounted {
+public abstract class AbstractIcapMessage implements IcapMessage {
 
 	private volatile int refCount = 1;
 
