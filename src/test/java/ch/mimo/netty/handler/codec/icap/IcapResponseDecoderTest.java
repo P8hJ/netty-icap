@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,135 +18,135 @@ package ch.mimo.netty.handler.codec.icap;
 
 import java.io.UnsupportedEncodingException;
 
-import org.jboss.netty.handler.codec.embedder.DecoderEmbedder;
+import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.Before;
 import org.junit.Test;
 
 public class IcapResponseDecoderTest extends AbstractIcapTest {
 
-	private DecoderEmbedder<Object> embedder;
-	
+	private EmbeddedChannel embeddedChannel;
+
 	@Before
 	public void setUp() throws UnsupportedEncodingException {
-		embedder = new DecoderEmbedder<Object>(new IcapResponseDecoder());
+		embeddedChannel = new EmbeddedChannel(new IcapResponseDecoder());
 	}
 	
 	@Test
 	public void decodeOPTIONSResponse() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.createOPTIONSResponse());
-		IcapResponse response = (IcapResponse)embedder.poll();
+		embeddedChannel.writeInbound(DataMockery.createOPTIONSResponse());
+		IcapResponse response = embeddedChannel.readInbound();
 		doOutput(response.toString());
 		DataMockery.assertOPTIONSResponse(response);
 	}
 	
 	@Test
 	public void decodeREQMODResponseWithGetRequestNoBody() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.createREQMODWithGetRequestResponse());
-		IcapResponse response = (IcapResponse)embedder.poll();
+		embeddedChannel.writeInbound(DataMockery.createREQMODWithGetRequestResponse());
+		IcapResponse response = embeddedChannel.readInbound();
 		doOutput(response.toString());
 		DataMockery.assertREQMODWithGetRequestResponse(response);
 	}
 	
 	@Test
 	public void decodeRESPMODWithGetRequestNoBody() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.createRESPMODWithGetRequestNoBodyResponse());
-		IcapResponse response = (IcapResponse)embedder.poll();
+		embeddedChannel.writeInbound(DataMockery.createRESPMODWithGetRequestNoBodyResponse());
+		IcapResponse response = embeddedChannel.readInbound();
 		doOutput(response.toString());
 		DataMockery.assertRESPMODWithGetRequestNoBodyResponse(response);
 	}
 
 	@Test
 	public void decodeREQMODResponseWithGetRequestAndBody() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.createREQMODWithImplicitTwoChunkBodyResponse());
-		IcapResponse response = (IcapResponse)embedder.poll();
+		embeddedChannel.writeInbound(DataMockery.createREQMODWithImplicitTwoChunkBodyResponse());
+		IcapResponse response = embeddedChannel.readInbound();
 		doOutput(response.toString());
 		DataMockery.assertCreateREQMODWithImplicitTwoChunkBodyResponse(response);
-		IcapChunk chunk1 = (IcapChunk)embedder.poll();
+		IcapChunk chunk1 = embeddedChannel.readInbound();
 		DataMockery.assertCreateREQMODWithTwoChunkBodyFirstChunk(chunk1);
-		IcapChunk chunk2 = (IcapChunk)embedder.poll();
+		IcapChunk chunk2 = embeddedChannel.readInbound();
 		DataMockery.assertCreateREQMODWithTwoChunkBodySecondChunk(chunk2);
-		IcapChunk chunk3 = (IcapChunk)embedder.poll();
+		IcapChunk chunk3 = embeddedChannel.readInbound();
 		DataMockery.assertCreateREQMODWithTwoChunkBodyThirdChunk(chunk3);
 	}
 	
 	@Test 
 	public void decodeRESPMODWithGetRequestAndPreview() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.createRESPMODWithGetRequestAndPreviewResponse());
-		IcapResponse response = (IcapResponse)embedder.poll();
+		embeddedChannel.writeInbound(DataMockery.createRESPMODWithGetRequestAndPreviewResponse());
+		IcapResponse response = embeddedChannel.readInbound();
 		doOutput(response.toString());
 		DataMockery.assertCreateRESPMODWithGetRequestAndPreviewResponse(response);
-		IcapChunk previewChunk = (IcapChunk)embedder.poll();
+		IcapChunk previewChunk = embeddedChannel.readInbound();
 		doOutput(previewChunk.toString());
 		DataMockery.assertCreateRESPMODWithGetRequestAndPreviewChunk(previewChunk);
-		IcapChunk lastChunk = (IcapChunk)embedder.poll();
+		IcapChunk lastChunk = embeddedChannel.readInbound();
 		doOutput(lastChunk.toString());
 		DataMockery.assertCreateRESPMODWithGetRequestAndPreviewLastChunk(lastChunk);
 	}
 	
 	@Test
 	public void decode100Continue() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.create100ContinueResponse());
-		IcapResponse result = (IcapResponse)embedder.poll();
+		embeddedChannel.writeInbound(DataMockery.create100ContinueResponse());
+		IcapResponse result = embeddedChannel.readInbound();
 		assertNotNull("The decoded icap request instance is null",result);
 		assertEquals("wrong response status code",IcapResponseStatus.CONTINUE,result.getStatus());
 	}
 	
 	@Test
 	public void decode100ContineFollowedBy204NoContent() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.create100ContinueResponse());
-		IcapResponse result = (IcapResponse)embedder.poll();
+		embeddedChannel.writeInbound(DataMockery.create100ContinueResponse());
+		IcapResponse result = embeddedChannel.readInbound();
 		assertNotNull("The decoded icap request instance is null",result);
 		assertEquals("wrong response status code",IcapResponseStatus.CONTINUE,result.getStatus());
-		embedder.offer(DataMockery.create204NoContentResponse());
-		result = (IcapResponse)embedder.poll();
+		embeddedChannel.writeInbound(DataMockery.create204NoContentResponse());
+		result = embeddedChannel.readInbound();
 		assertNotNull("The decoded icap request instance is null",result);
 		assertEquals("wrong response status code",IcapResponseStatus.NO_CONTENT,result.getStatus());
 	}
 	
 	@Test
 	public void decodeRESPMODWithPreviewFollowedByREQPMODFollwedBy100Continue() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.createRESPMODWithGetRequestAndPreviewResponse());
-		Object object = embedder.poll();
+		embeddedChannel.writeInbound(DataMockery.createRESPMODWithGetRequestAndPreviewResponse());
+		Object object = embeddedChannel.readInbound();
 		assertNotNull("RESPMOD request was null",object);
 		assertTrue("wrong object type",object instanceof IcapResponse);
-		object = embedder.poll();
+		object = embeddedChannel.readInbound();
 		assertNotNull("RESPMOD preview chunk was null",object);
 		assertTrue("wrong object type",object instanceof IcapChunk);
 		IcapChunk chunk = (IcapChunk)object;
 		assertTrue("chunk is not preview",chunk.isPreviewChunk());
-		object = embedder.poll();
+		object = embeddedChannel.readInbound();
 		assertNotNull("preview chunk trailer is null",object);
 		assertTrue("wrong object type",object instanceof IcapChunkTrailer);
 		IcapChunkTrailer trailer = (IcapChunkTrailer)object;
 		assertTrue("chunk trailer is not marked as preview",trailer.isPreviewChunk());
-		embedder.offer(DataMockery.createREQMODWithGetRequestResponse());
-		object = embedder.poll();
+		embeddedChannel.writeInbound(DataMockery.createREQMODWithGetRequestResponse());
+		object = embeddedChannel.readInbound();
 		assertNotNull("REQMOD request was null",object);
 		assertTrue("wrong object type",object instanceof IcapResponse);
-		embedder.offer(DataMockery.create100ContinueResponse());
-		IcapResponse result = (IcapResponse)embedder.poll();
+		embeddedChannel.writeInbound(DataMockery.create100ContinueResponse());
+		IcapResponse result = embeddedChannel.readInbound();
 		assertNotNull("The decoded icap request instance is null",result);
 		assertEquals("wrong response status code",IcapResponseStatus.CONTINUE,result.getStatus());
 	}
 	
 	@Test
 	public void decodeREQMODResponseWithHttpResponse() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.createREQMODResponseContainingHttpResponse());
-		IcapResponse response = (IcapResponse)embedder.poll();
+		embeddedChannel.writeInbound(DataMockery.createREQMODResponseContainingHttpResponse());
+		IcapResponse response = embeddedChannel.readInbound();
 		DataMockery.assertREQMODResponseContainingHttpResponse(response);
 	}
 	
 	@Test
 	public void decode204ResponseWithoutEncapsulatedHeader() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.create204ResponseWithoutEncapsulatedHeader());
-		IcapResponse response = (IcapResponse)embedder.poll();
+		embeddedChannel.writeInbound(DataMockery.create204ResponseWithoutEncapsulatedHeader());
+		IcapResponse response = embeddedChannel.readInbound();
 		assertNotNull("The decoded icap response instance is null",response);
 	}
 	
 	@Test
 	public void decode100ContinueWithoutEncapsulatedHeader() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.create100ResponseWithoutEncapsulatedHeader());
-		IcapResponse response = (IcapResponse)embedder.poll();
+		embeddedChannel.writeInbound(DataMockery.create100ResponseWithoutEncapsulatedHeader());
+		IcapResponse response = embeddedChannel.readInbound();
 		assertNotNull("The decoded icap response instance is null",response);
 	}
 }

@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,115 +18,115 @@ package ch.mimo.netty.handler.codec.icap;
 
 import java.io.UnsupportedEncodingException;
 
-import org.jboss.netty.handler.codec.embedder.EncoderEmbedder;
+import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.Before;
 import org.junit.Test;
 
 public class IcapChunkSeparatorTest extends AbstractIcapTest {
 
-	private EncoderEmbedder<Object> embedder;
+	private EmbeddedChannel embeddedChannel;
 	
 	@Before
 	public void setUp() throws UnsupportedEncodingException {
-		embedder = new EncoderEmbedder<Object>(new IcapChunkSeparator(20));
+        embeddedChannel = new EmbeddedChannel(new IcapChunkSeparator(20));
 	}
 	
 	@Test
 	public void sendNonIcapMessage() {
-		embedder.offer("This is a simple string");
-		String message = (String)embedder.poll();
+		embeddedChannel.writeOutbound("This is a simple string");
+		String message = embeddedChannel.readOutbound();
 		assertNotNull("input response was not received",message);
 		assertEquals("input message is not equals output message","This is a simple string",message);
 	}
 	
 	@Test
 	public void separateREQMODWithGetRequestNoBodyIcapRequest() {
-		embedder.offer(DataMockery.createREQMODWithGetRequestNoBodyIcapMessage());
-		IcapMessage message = (IcapMessage)embedder.poll();
+		embeddedChannel.writeOutbound(DataMockery.createREQMODWithGetRequestNoBodyIcapMessage());
+		IcapMessage message = embeddedChannel.readOutbound();
 		assertNotNull("message was null",message);
-		assertNull("still some elements in the pipeline",embedder.poll());
+		assertNull("still some elements in the pipeline",embeddedChannel.readOutbound());
 	}
 	
 	@Test
 	public void separateREQMODWithGetRequestAndData() {
-		embedder.offer(DataMockery.createREQMODWithGetRequestAndDataIcapMessage());
-		IcapMessage message = (IcapMessage)embedder.poll();
+		embeddedChannel.writeOutbound(DataMockery.createREQMODWithGetRequestAndDataIcapMessage());
+		IcapMessage message = embeddedChannel.readOutbound();
 		assertNotNull("message was null",message);
 		assertEquals("message body indicator is wrong",IcapMessageElementEnum.REQBODY,message.getBodyType());
-		IcapChunk chunk1 = (IcapChunk)embedder.poll();
+		IcapChunk chunk1 = embeddedChannel.readOutbound();
 		assertNotNull("chunk 1 was null",chunk1);
-		assertEquals("chunk 1 content is wrong","This is data that wa",chunk1.getContent().toString(IcapCodecUtil.ASCII_CHARSET));
-		IcapChunk chunk2 = (IcapChunk)embedder.poll();
+		assertEquals("chunk 1 content is wrong","This is data that wa",chunk1.content().toString(IcapCodecUtil.ASCII_CHARSET));
+		IcapChunk chunk2 = embeddedChannel.readOutbound();
 		assertNotNull("chunk 2 was null",chunk2);
-		assertEquals("chunk 2 content is wrong","s returned by an ori",chunk2.getContent().toString(IcapCodecUtil.ASCII_CHARSET));
-		IcapChunk chunk3 = (IcapChunk)embedder.poll();
+		assertEquals("chunk 2 content is wrong","s returned by an ori",chunk2.content().toString(IcapCodecUtil.ASCII_CHARSET));
+		IcapChunk chunk3 = embeddedChannel.readOutbound();
 		assertNotNull("chunk 3 was null",chunk3);
-		assertEquals("chunk 3 content is wrong","gin server.",chunk3.getContent().toString(IcapCodecUtil.ASCII_CHARSET));
-		IcapChunkTrailer trailer = (IcapChunkTrailer)embedder.poll();
+		assertEquals("chunk 3 content is wrong","gin server.",chunk3.content().toString(IcapCodecUtil.ASCII_CHARSET));
+		IcapChunkTrailer trailer = embeddedChannel.readOutbound();
 		assertNotNull("chunk trailer was null",trailer);
 	}
 	
 	@Test
 	public void separateREQMODWithGetRequestAndDataResponse() {
-		embedder.offer(DataMockery.createREQMODWithDataIcapResponse());
-		IcapMessage message = (IcapMessage)embedder.poll();
+		embeddedChannel.writeOutbound(DataMockery.createREQMODWithDataIcapResponse());
+		IcapMessage message = embeddedChannel.readOutbound();
 		assertNotNull("message was null",message);
 		assertEquals("message body indicator is wrong",IcapMessageElementEnum.REQBODY,message.getBodyType());
-		IcapChunk chunk1 = (IcapChunk)embedder.poll();
+		IcapChunk chunk1 = embeddedChannel.readOutbound();
 		assertNotNull("chunk 1 was null",chunk1);
-		assertEquals("chunk 1 content is wrong","This is data that wa",chunk1.getContent().toString(IcapCodecUtil.ASCII_CHARSET));
-		IcapChunk chunk2 = (IcapChunk)embedder.poll();
+		assertEquals("chunk 1 content is wrong","This is data that wa",chunk1.content().toString(IcapCodecUtil.ASCII_CHARSET));
+		IcapChunk chunk2 = embeddedChannel.readOutbound();
 		assertNotNull("chunk 2 was null",chunk2);
-		assertEquals("chunk 2 content is wrong","s returned by an ori",chunk2.getContent().toString(IcapCodecUtil.ASCII_CHARSET));
-		IcapChunk chunk3 = (IcapChunk)embedder.poll();
+		assertEquals("chunk 2 content is wrong","s returned by an ori",chunk2.content().toString(IcapCodecUtil.ASCII_CHARSET));
+		IcapChunk chunk3 = embeddedChannel.readOutbound();
 		assertNotNull("chunk 3 was null",chunk3);
-		assertEquals("chunk 3 content is wrong","gin server.",chunk3.getContent().toString(IcapCodecUtil.ASCII_CHARSET));
-		IcapChunkTrailer trailer = (IcapChunkTrailer)embedder.poll();
+		assertEquals("chunk 3 content is wrong","gin server.",chunk3.content().toString(IcapCodecUtil.ASCII_CHARSET));
+		IcapChunkTrailer trailer = embeddedChannel.readOutbound();
 		assertNotNull("chunk trailer was null",trailer);
 	}
 	
 	@Test
 	public void separateREQMODWithPreviewData() {
-		embedder.offer(DataMockery.createRESPMODWithPreviewDataIcapRequest());
-		IcapMessage message = (IcapMessage)embedder.poll();
+		embeddedChannel.writeOutbound(DataMockery.createRESPMODWithPreviewDataIcapRequest());
+		IcapMessage message = embeddedChannel.readOutbound();
 		assertNotNull("message was null",message);
 		assertEquals("message body indicator is wrong",IcapMessageElementEnum.RESBODY,message.getBodyType());
-		IcapChunk chunk1 = (IcapChunk)embedder.poll();
+		IcapChunk chunk1 = embeddedChannel.readOutbound();
 		assertNotNull("chunk 1 was null",chunk1);
 		assertTrue("chunk 1 is not marked as preview",chunk1.isPreviewChunk());
-		assertEquals("chunk 1 content is wrong","This is data that wa",chunk1.getContent().toString(IcapCodecUtil.ASCII_CHARSET));
-		IcapChunk chunk2 = (IcapChunk)embedder.poll();
+		assertEquals("chunk 1 content is wrong","This is data that wa",chunk1.content().toString(IcapCodecUtil.ASCII_CHARSET));
+		IcapChunk chunk2 = embeddedChannel.readOutbound();
 		assertNotNull("chunk 2 was null",chunk2);
 		assertTrue("chunk 2 is not marked as preview",chunk2.isPreviewChunk());
-		assertEquals("chunk 2 content is wrong","s returned by an ori",chunk2.getContent().toString(IcapCodecUtil.ASCII_CHARSET));
-		IcapChunk chunk3 = (IcapChunk)embedder.poll();
+		assertEquals("chunk 2 content is wrong","s returned by an ori",chunk2.content().toString(IcapCodecUtil.ASCII_CHARSET));
+		IcapChunk chunk3 = embeddedChannel.readOutbound();
 		assertNotNull("chunk 3 was null",chunk3);
 		assertTrue("chunk 3 is not marked as preview",chunk3.isPreviewChunk());
-		assertEquals("chunk 3 content is wrong","gin server.",chunk3.getContent().toString(IcapCodecUtil.ASCII_CHARSET));
-		IcapChunkTrailer trailer = (IcapChunkTrailer)embedder.poll();
+		assertEquals("chunk 3 content is wrong","gin server.",chunk3.content().toString(IcapCodecUtil.ASCII_CHARSET));
+		IcapChunkTrailer trailer = embeddedChannel.readOutbound();
 		assertNotNull("chunk trailer was null",trailer);
 		assertTrue("trailer is not marked as preview",trailer.isPreviewChunk());
 	}
 	
 	@Test
 	public void separateREQMODWithPreviewDataAndEarlyTermination() {
-		embedder.offer(DataMockery.createRESPMODWithPreviewDataAndEarlyTerminationIcapRequest());
-		IcapMessage message = (IcapMessage)embedder.poll();
+		embeddedChannel.writeOutbound(DataMockery.createRESPMODWithPreviewDataAndEarlyTerminationIcapRequest());
+		IcapMessage message = embeddedChannel.readOutbound();
 		assertNotNull("message was null",message);
 		assertEquals("message body indicator is wrong",IcapMessageElementEnum.RESBODY,message.getBodyType());
-		IcapChunk chunk1 = (IcapChunk)embedder.poll();
+		IcapChunk chunk1 = embeddedChannel.readOutbound();
 		assertNotNull("chunk 1 was null",chunk1);
 		assertTrue("chunk 1 is not marked as preview",chunk1.isPreviewChunk());
-		assertEquals("chunk 1 content is wrong","This is data that wa",chunk1.getContent().toString(IcapCodecUtil.ASCII_CHARSET));
-		IcapChunk chunk2 = (IcapChunk)embedder.poll();
+		assertEquals("chunk 1 content is wrong","This is data that wa",chunk1.content().toString(IcapCodecUtil.ASCII_CHARSET));
+		IcapChunk chunk2 = embeddedChannel.readOutbound();
 		assertNotNull("chunk 2 was null",chunk2);
 		assertTrue("chunk 2 is not marked as preview",chunk2.isPreviewChunk());
-		assertEquals("chunk 2 content is wrong","s returned by an ori",chunk2.getContent().toString(IcapCodecUtil.ASCII_CHARSET));
-		IcapChunk chunk3 = (IcapChunk)embedder.poll();
+		assertEquals("chunk 2 content is wrong","s returned by an ori",chunk2.content().toString(IcapCodecUtil.ASCII_CHARSET));
+		IcapChunk chunk3 = embeddedChannel.readOutbound();
 		assertNotNull("chunk 3 was null",chunk3);
 		assertTrue("chunk 3 is not marked as preview",chunk3.isPreviewChunk());
-		assertEquals("chunk 3 content is wrong","g",chunk3.getContent().toString(IcapCodecUtil.ASCII_CHARSET));
-		IcapChunkTrailer trailer = (IcapChunkTrailer)embedder.poll();
+		assertEquals("chunk 3 content is wrong","g",chunk3.content().toString(IcapCodecUtil.ASCII_CHARSET));
+		IcapChunkTrailer trailer = embeddedChannel.readOutbound();
 		assertNotNull("chunk trailer was null",trailer);
 		assertTrue("trailer is not marked as preview",trailer.isPreviewChunk());
 		assertTrue("trailer is not marked as early terminated",trailer.isEarlyTerminated());
@@ -133,20 +134,20 @@ public class IcapChunkSeparatorTest extends AbstractIcapTest {
 	
 	@Test
 	public void separateOPTIONSResponseWithBody() {
-		embedder.offer(DataMockery.createOPTIONSResponseWithBodyInIcapResponse());
-		IcapMessage message = (IcapMessage)embedder.poll();
+		embeddedChannel.writeOutbound(DataMockery.createOPTIONSResponseWithBodyInIcapResponse());
+		IcapMessage message = embeddedChannel.readOutbound();
 		assertNotNull("message was null",message);
 		assertEquals("message body indicator is wrong",IcapMessageElementEnum.OPTBODY,message.getBodyType());
-		IcapChunk chunk1 = (IcapChunk)embedder.poll();
+		IcapChunk chunk1 = embeddedChannel.readOutbound();
 		assertNotNull("chunk 1 was null",chunk1);
-		assertEquals("chunk 1 content is wrong","This is data that wa",chunk1.getContent().toString(IcapCodecUtil.ASCII_CHARSET));
-		IcapChunk chunk2 = (IcapChunk)embedder.poll();
+		assertEquals("chunk 1 content is wrong","This is data that wa",chunk1.content().toString(IcapCodecUtil.ASCII_CHARSET));
+		IcapChunk chunk2 = embeddedChannel.readOutbound();
 		assertNotNull("chunk 2 was null",chunk2);
-		assertEquals("chunk 2 content is wrong","s returned by an ori",chunk2.getContent().toString(IcapCodecUtil.ASCII_CHARSET));
-		IcapChunk chunk3 = (IcapChunk)embedder.poll();
+		assertEquals("chunk 2 content is wrong","s returned by an ori",chunk2.content().toString(IcapCodecUtil.ASCII_CHARSET));
+		IcapChunk chunk3 = embeddedChannel.readOutbound();
 		assertNotNull("chunk 3 was null",chunk3);
-		assertEquals("chunk 3 content is wrong","gin server.",chunk3.getContent().toString(IcapCodecUtil.ASCII_CHARSET));
-		IcapChunkTrailer trailer = (IcapChunkTrailer)embedder.poll();
+		assertEquals("chunk 3 content is wrong","gin server.",chunk3.content().toString(IcapCodecUtil.ASCII_CHARSET));
+		IcapChunkTrailer trailer = embeddedChannel.readOutbound();
 		assertNotNull("chunk trailer was null",trailer);
 	}
 }

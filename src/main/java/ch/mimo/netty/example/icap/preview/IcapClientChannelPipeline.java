@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +16,20 @@
  ******************************************************************************/
 package ch.mimo.netty.example.icap.preview;
 
-import static org.jboss.netty.channel.Channels.pipeline;
-
-import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.ChannelPipelineFactory;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPipeline;
 
 import ch.mimo.netty.handler.codec.icap.IcapRequestEncoder;
 import ch.mimo.netty.handler.codec.icap.IcapResponseDecoder;
 
-public class IcapClientChannelPipeline implements ChannelPipelineFactory {
-	
+public class IcapClientChannelPipeline extends ChannelInitializer {
+
 	@Override
-	public ChannelPipeline getPipeline() throws Exception {
-		ChannelPipeline pipeline = pipeline();
+	protected void initChannel(Channel ch) {
+		ChannelPipeline pipeline = ch.pipeline();
     	pipeline.addLast("encoder",new IcapRequestEncoder());
       	pipeline.addLast("decoder",new IcapResponseDecoder());
       	pipeline.addLast("handler",new IcapClientHandler());
-      	return pipeline;
 	}
 }

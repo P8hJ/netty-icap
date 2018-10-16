@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +16,8 @@
  ******************************************************************************/
 package ch.mimo.netty.example.icap.preview;
 
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 
 import ch.mimo.netty.handler.codec.icap.DefaultIcapResponse;
 import ch.mimo.netty.handler.codec.icap.IcapChunk;
@@ -27,15 +27,14 @@ import ch.mimo.netty.handler.codec.icap.IcapResponse;
 import ch.mimo.netty.handler.codec.icap.IcapResponseStatus;
 import ch.mimo.netty.handler.codec.icap.IcapVersion;
 
-public class IcapServerHandler extends SimpleChannelUpstreamHandler {
+public class IcapServerHandler extends ChannelInboundHandlerAdapter {
 
 	private boolean continueWasSent;
-	
+
 	@Override
-	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
-		Object msg = e.getMessage();
+	public void channelRead(ChannelHandlerContext ctx, Object msg) {
 		if(msg instanceof IcapRequest) {
-			IcapRequest request = (IcapRequest)e.getMessage();
+			IcapRequest request = (IcapRequest)msg;
 			System.out.println(request.toString());
 		} else if(msg instanceof IcapChunkTrailer) {
 			System.out.println(msg.toString());
@@ -43,11 +42,12 @@ public class IcapServerHandler extends SimpleChannelUpstreamHandler {
 				continueWasSent = true;
 				// sending 100 continue in order to receive the rest of the message
 				IcapResponse response = new DefaultIcapResponse(IcapVersion.ICAP_1_0,IcapResponseStatus.CONTINUE);
-				ctx.getChannel().write(response);
+				ctx.writeAndFlush(response);
 			} else {
 				// sending 204 No Content response
 				IcapResponse response = new DefaultIcapResponse(IcapVersion.ICAP_1_0,IcapResponseStatus.NO_CONTENT);
-				ctx.getChannel().write(response);
+				ctx.writeAndFlush(response);
+				ctx.close();
 			}
 		} else if(msg instanceof IcapChunk) {
 			System.out.println(msg);

@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,44 +16,28 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap.socket;
 
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelStateEvent;
-import org.jboss.netty.channel.ExceptionEvent;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 
-public abstract class AbstractHandler extends SimpleChannelUpstreamHandler implements Handler {
+public abstract class AbstractHandler extends ChannelInboundHandlerAdapter implements Handler {
 
-	private Channel channel;
 	private boolean processed;
 	private boolean exception;
 	
 	private Throwable cause;
-	
-	
+
 	@Override
-	public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
-		super.channelOpen(ctx, e);
-		this.channel = ctx.getChannel();
+	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+		processed = doMessageReceived(ctx, msg);
 	}
 
 	@Override
-	public final void messageReceived(ChannelHandlerContext context, MessageEvent event) throws Exception {
-		processed = doMessageReceived(context,event,channel);
-	}
-	
-	@Override
-	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
-		super.exceptionCaught(ctx, e);
-		cause = e.getCause();
+	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+		super.exceptionCaught(ctx, cause);
+		this.cause = cause;
 		exception = true;
 	}
-	
-	public void close() {
-		this.channel.close().awaitUninterruptibly();
-	}
-	
+
 	public boolean isProcessed() {
 		return processed;
 	}
@@ -65,5 +50,5 @@ public abstract class AbstractHandler extends SimpleChannelUpstreamHandler imple
 		return cause;
 	}
 
-	public abstract boolean doMessageReceived(ChannelHandlerContext context, MessageEvent event, Channel channel) throws Exception;
+	public abstract boolean doMessageReceived(ChannelHandlerContext ctx, Object msg) throws Exception;
 }

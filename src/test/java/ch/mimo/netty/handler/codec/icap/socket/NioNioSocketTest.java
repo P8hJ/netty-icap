@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +16,40 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap.socket;
 
-import java.util.concurrent.Executor;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 
-import org.jboss.netty.channel.ChannelFactory;
-import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
-import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.Executor;
 
 public class NioNioSocketTest extends SocketTests {
 
 	@Override
-	protected ChannelFactory newServerSocketChannelFactory(Executor executor) {
-		return new NioServerSocketChannelFactory(executor, executor);
+	protected Class<NioServerSocketChannel> newServerSocketChannelFactory() {
+		return NioServerSocketChannel.class;
 	}
 
 	@Override
-	protected ChannelFactory newClientSocketChannelFactory(Executor executor) {
-		 return new NioClientSocketChannelFactory(executor, executor);
+	protected Class<NioSocketChannel> newClientSocketChannelFactory() {
+		return NioSocketChannel.class;
 	}
+
+    @Override
+    protected EventLoopGroup newServerEventLoopGroup(Executor executor) {
+        return new NioEventLoopGroup(1, executor);
+    }
+
+    @Override
+    protected EventLoopGroup newClientEventLoopGroup(Executor executor) {
+        return new NioEventLoopGroup(1, executor);
+    }
+
+    @Override
+    protected Map<ChannelOption, Object> clientAdditionalChannelOptions() {
+        return Collections.emptyMap();
+    }
 }

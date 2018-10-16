@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +18,9 @@ package ch.mimo.netty.handler.codec.icap;
 
 import java.util.List;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.handler.codec.http.HttpChunkTrailer;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
+import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.LastHttpContent;
 
 /**
  * Decoder State that reads http trailing headers.
@@ -36,21 +37,21 @@ public class ReadTrailingHeadersState extends State<Object> {
 	}
 	
 	@Override
-	public void onEntry(ChannelBuffer buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
+	public void onEntry(ByteBuf buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
 	}
 
 	@Override
-	public StateReturnValue execute(ChannelBuffer buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
+	public StateReturnValue execute(ByteBuf buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
 		SizeDelimiter sizeDelimiter = new SizeDelimiter(icapMessageDecoder.maxHttpHeaderSize);
 		boolean preview = icapMessageDecoder.message.isPreviewMessage();
         String line = IcapDecoderUtil.readSingleHeaderLine(buffer,sizeDelimiter);
         String lastHeader = null;
         if (line.length() != 0) {
-            HttpChunkTrailer trailer = new DefaultIcapChunkTrailer(preview,false);
+            LastHttpContent trailer = new DefaultIcapChunkTrailer(preview,false);
             do {
                 char firstChar = line.charAt(0);
                 if (lastHeader != null && (firstChar == ' ' || firstChar == '\t')) {
-                    List<String> current = trailer.getHeaders(lastHeader);
+                    List<String> current = trailer.trailingHeaders().getAll(lastHeader);
                     if (current.size() != 0) {
                         int lastPos = current.size() - 1;
                         String newString = current.get(lastPos) + line.trim();
@@ -64,7 +65,7 @@ public class ReadTrailingHeadersState extends State<Object> {
                     if (!name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH) &&
                         !name.equalsIgnoreCase(HttpHeaders.Names.TRANSFER_ENCODING) &&
                         !name.equalsIgnoreCase(HttpHeaders.Names.TRAILER)) {
-                        trailer.addHeader(name, header[1]);
+                        trailer.trailingHeaders().add(name, header[1]);
                     }
                     lastHeader = name;
                 }
@@ -78,7 +79,7 @@ public class ReadTrailingHeadersState extends State<Object> {
 	}
 
 	@Override
-	public StateEnum onExit(ChannelBuffer buffer, IcapMessageDecoder icapMessageDecoder, Object decisionInformation) throws DecodingException {
+	public StateEnum onExit(ByteBuf buffer, IcapMessageDecoder icapMessageDecoder, Object decisionInformation) throws DecodingException {
 		return null;
 	}
 }

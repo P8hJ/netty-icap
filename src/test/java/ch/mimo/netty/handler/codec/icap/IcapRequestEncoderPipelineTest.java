@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,43 +19,43 @@ package ch.mimo.netty.handler.codec.icap;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.handler.codec.embedder.EncoderEmbedder;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.Before;
 import org.junit.Test;
 
 public class IcapRequestEncoderPipelineTest extends AbstractIcapTest {
 
-	private EncoderEmbedder<Object> embedder;
+	private EmbeddedChannel embeddedChannel;
 	
 	@Before
 	public void setUp() throws UnsupportedEncodingException {
-		embedder = new EncoderEmbedder<Object>(new IcapRequestEncoder(),new IcapChunkSeparator(4012));
+	    embeddedChannel = new EmbeddedChannel(new IcapRequestEncoder(), new IcapChunkSeparator(4012));
 	}
 	
 	@Test
 	public void encodeREQMODRequestWithoutBody() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.createREQMODWithGetRequestNoBodyIcapMessage());
-		ChannelBuffer buffer = (ChannelBuffer)embedder.poll();
+		embeddedChannel.writeOutbound(DataMockery.createREQMODWithGetRequestNoBodyIcapMessage());
+		ByteBuf buffer = embeddedChannel.readOutbound();
 		assertNotNull("buffer was null",buffer);
 		assertEquals("buffer content is wrong",DataMockery.createREQMODWithGetRequestNoBody().toString(Charset.defaultCharset()),buffer.toString(Charset.defaultCharset()));
 	}
 	
 	@Test
 	public void encodeREQMODRequestWithBody() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.createREQMODWithGetRequestAndDataIcapMessage());
-		ChannelBuffer buffer = (ChannelBuffer)embedder.poll();
+		embeddedChannel.writeOutbound(DataMockery.createREQMODWithGetRequestAndDataIcapMessage());
+		ByteBuf buffer = embeddedChannel.readOutbound();
 		assertNotNull("message buffer was null",buffer);
 		String message = buffer.toString(Charset.defaultCharset());
 		assertEquals("message buffer content is wrong",DataMockery.createREQMODWithGetRequestAndData().toString(Charset.defaultCharset()),message);
-		buffer = (ChannelBuffer)embedder.poll();
+		buffer = embeddedChannel.readOutbound();
 		assertNotNull("chnunk buffer was null",buffer);
 		message = buffer.toString(Charset.defaultCharset());
 		assertEquals("chunk buffer content is wrong",DataMockery.createREQMODWithGetRequestAndDataFirstChunk().toString(Charset.defaultCharset()),message);
-		buffer = (ChannelBuffer)embedder.poll();
+		buffer = embeddedChannel.readOutbound();
 		assertNotNull("last chnunk buffer was null",buffer);
 		message = buffer.toString(Charset.defaultCharset());
 		assertEquals("last chunk is wrong",DataMockery.createREQMODWithGetRequestAndDataLastChunk().toString(Charset.defaultCharset()),message);
-		assertNull("poll is not empty",embedder.poll());
+		assertNull("poll is not empty",embeddedChannel.readOutbound());
 	}
 }

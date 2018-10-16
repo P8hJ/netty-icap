@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +18,7 @@ package ch.mimo.netty.handler.codec.icap;
 
 import java.nio.charset.Charset;
 
-import org.jboss.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 import org.junit.After;
 import org.junit.Before;
 
@@ -39,12 +40,12 @@ public abstract class AbstractEncoderTest extends AbstractIcapTest {
 	
 	protected String getBufferContent(Object object) {
 		assertNotNull("poll returned null",object);
-		assertTrue("returned object from embedder is not of type ChannelBuffer",object instanceof ChannelBuffer);
-		ChannelBuffer buffer = (ChannelBuffer)object;
+		assertTrue("returned object from embedder is not of type ByteBuf",object instanceof ByteBuf);
+		ByteBuf buffer = (ByteBuf) object;
 		return buffer.toString(Charset.defaultCharset());
 	}
 	
-	protected void assertResponse(ChannelBuffer expected, String request) {
+	protected void assertResponse(ByteBuf expected, String request) {
 		String content = getBufferContent(expected);
 		outputBuilder.append(content);
 		assertEquals("encoded request is wrong",content,request);

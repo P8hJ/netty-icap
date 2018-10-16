@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +16,16 @@
  ******************************************************************************/
 package ch.mimo.netty.example.icap.simple;
 
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 
 import ch.mimo.netty.handler.codec.icap.IcapResponse;
 
-public class IcapClientHandler extends SimpleChannelUpstreamHandler {
+public class IcapClientHandler extends ChannelInboundHandlerAdapter {
 
 	@Override
-	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
-		IcapResponse response = (IcapResponse)e.getMessage();
+	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+		IcapResponse response = (IcapResponse) msg;
 		System.out.println(response.toString());
 	}
 	

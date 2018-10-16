@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,80 +18,80 @@ package ch.mimo.netty.handler.codec.icap;
 
 import java.io.UnsupportedEncodingException;
 
-import org.jboss.netty.handler.codec.embedder.EncoderEmbedder;
+import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.Before;
 import org.junit.Test;
 
 public class IcapResponseEncoderTest extends AbstractEncoderTest {
 
-	private EncoderEmbedder<Object> embedder;
+	private EmbeddedChannel embeddedChannel;
 	
 	@Before
 	public void setUp() {
-		embedder = new EncoderEmbedder<Object>(new IcapResponseEncoder());
+	    embeddedChannel = new EmbeddedChannel(new IcapResponseEncoder());
 	}
 	
 	@Test
 	public void encode100ContinueResponse() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.create100ContinueIcapResponse());
-		String response = getBufferContent(embedder.poll());
+	    embeddedChannel.writeOutbound(DataMockery.create100ContinueIcapResponse());
+		String response = getBufferContent(embeddedChannel.readOutbound());
 		assertResponse(DataMockery.create100ContinueResponse(),response);
 	}
-	
+
 	@Test
 	public void encodeOPTIONSResponse() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.createOPTIONSIcapResponse());
-		String response = getBufferContent(embedder.poll());
+		embeddedChannel.writeOutbound(DataMockery.createOPTIONSIcapResponse());
+		String response = getBufferContent(embeddedChannel.readOutbound());
 		assertResponse(DataMockery.createOPTIONSResponse(),response);
 	}
-	
+
 	@Test
 	public void encodeOPTIONSResponseWithBody() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.createOPTIONSIcapResponseWithBody());
-		String response = getBufferContent(embedder.poll());
+		embeddedChannel.writeOutbound(DataMockery.createOPTIONSIcapResponseWithBody());
+		String response = getBufferContent(embeddedChannel.readOutbound());
 		assertResponse(DataMockery.createOPTIONSResponseWithBody(),response);
-		embedder.offer(DataMockery.createOPTIONSIcapChunk());
-		String chunk1 = getBufferContent(embedder.poll());
+		embeddedChannel.writeOutbound(DataMockery.createOPTIONSIcapChunk());
+		String chunk1 = getBufferContent(embeddedChannel.readOutbound());
 		assertResponse(DataMockery.createOPTIONSChunk(),chunk1);
-		embedder.offer(DataMockery.createOPTIONSLastIcapChunk());
-		String lastChunk = getBufferContent(embedder.poll());
+		embeddedChannel.writeOutbound(DataMockery.createOPTIONSLastIcapChunk());
+		String lastChunk = getBufferContent(embeddedChannel.readOutbound());
 		assertResponse(DataMockery.createOPTIONSLastChunk(),lastChunk);
 	}
 	
 	@Test
 	public void encodeREQMODResponseWithoutBody() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.createREQMODWithGetRequestNoBodyIcapResponse());
-		String response = getBufferContent(embedder.poll());
+		embeddedChannel.writeOutbound(DataMockery.createREQMODWithGetRequestNoBodyIcapResponse());
+		String response = getBufferContent(embeddedChannel.readOutbound());
 		assertResponse(DataMockery.createREQMODWithGetRequestResponse(),response);
 	}
 	
 	@Test
 	public void encodeRESPMODResponseWithoutBody() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.createRESPMODWithGetRequestNoBodyIcapResponse());
-		String response = getBufferContent(embedder.poll());
+		embeddedChannel.writeOutbound(DataMockery.createRESPMODWithGetRequestNoBodyIcapResponse());
+		String response = getBufferContent(embeddedChannel.readOutbound());
 		assertResponse(DataMockery.createRESPMODWithGetRequestNoBodyResponse(),response);
 	}
 	
 	@Test
 	public void encodeREQMODResponseWithTwoChunkBody() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.createREQMODWithTwoChunkBodyIcapResponse());
-		String response = getBufferContent(embedder.poll());
+		embeddedChannel.writeOutbound(DataMockery.createREQMODWithTwoChunkBodyIcapResponse());
+		String response = getBufferContent(embeddedChannel.readOutbound());
 		assertResponse(DataMockery.createREQMODWithTwoChunkBodyResponse(),response);
-		embedder.offer(DataMockery.createREQMODWithTwoChunkBodyIcapChunkOne());
-		String chunk1 = getBufferContent(embedder.poll());
+		embeddedChannel.writeOutbound(DataMockery.createREQMODWithTwoChunkBodyIcapChunkOne());
+		String chunk1 = getBufferContent(embeddedChannel.readOutbound());
 		assertResponse(DataMockery.createREQMODWithTowChunkBodyChunkOne(),chunk1);
-		embedder.offer(DataMockery.createREQMODWithTwoChunkBodyIcapChunkTwo());
-		String chunk2 = getBufferContent(embedder.poll());
+		embeddedChannel.writeOutbound(DataMockery.createREQMODWithTwoChunkBodyIcapChunkTwo());
+		String chunk2 = getBufferContent(embeddedChannel.readOutbound());
 		assertResponse(DataMockery.createREQMODWithTwoChunkBodyChunkTwo(),chunk2);
-		embedder.offer(DataMockery.createREQMODWithTwoChunkBodyIcapChunkThree());
-		String chunk3 = getBufferContent(embedder.poll());
+		embeddedChannel.writeOutbound(DataMockery.createREQMODWithTwoChunkBodyIcapChunkThree());
+		String chunk3 = getBufferContent(embeddedChannel.readOutbound());
 		assertResponse(DataMockery.createREQMODWithTwoChunkBodyChunkThree(),chunk3);
 	}
 	
 	@Test
 	public void encodeREQMODResponseWithHttpResponse() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.createREQMODResponseContainingHttpResponseIcapResponse());
-		String response = getBufferContent(embedder.poll());
+		embeddedChannel.writeOutbound(DataMockery.createREQMODResponseContainingHttpResponseIcapResponse());
+		String response = getBufferContent(embeddedChannel.readOutbound());
 		assertResponse(DataMockery.createREQMODResponseContainingHttpResponse(),response);
 	}
 }

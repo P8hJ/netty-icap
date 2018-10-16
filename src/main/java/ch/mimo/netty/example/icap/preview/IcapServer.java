@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +16,10 @@
  ******************************************************************************/
 package ch.mimo.netty.example.icap.preview;
 
-import java.net.InetSocketAddress;
-import java.util.concurrent.Executors;
-
-import org.jboss.netty.bootstrap.ServerBootstrap;
-import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 /**
  * An ICAP Server that prints the preview request asks for the rest via
@@ -33,15 +33,14 @@ public class IcapServer {
 
 	public static void main(String[] args) {
         // Configure the server.
-        ServerBootstrap bootstrap = new ServerBootstrap(
-                new NioServerSocketChannelFactory(
-                        Executors.newCachedThreadPool(),
-                        Executors.newCachedThreadPool()));
-        
-        // Set up the event pipeline factory.
-        bootstrap.setPipelineFactory(new IcapServerChannelPipeline());
-
-        // Bind and start to accept incoming connections.
-        bootstrap.bind(new InetSocketAddress(8099));
+        EventLoopGroup bossGroup = new NioEventLoopGroup();
+        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        ServerBootstrap bootstrap = new ServerBootstrap();
+        bootstrap
+            .group(bossGroup, workerGroup)
+            .channel(NioServerSocketChannel.class)
+            .localAddress(8099)
+            .childHandler(new IcapServerChannelPipeline())
+            .bind();
 	}
 }

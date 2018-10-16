@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +16,7 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import org.jboss.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 
 /**
  * Encodes an ICAP Request which takes an @see {@link IcapRequest} or @see {@link IcapChunk} to encode.
@@ -30,7 +31,7 @@ public class IcapRequestEncoder extends IcapMessageEncoder {
 	}
 	
 	@Override
-	protected int encodeInitialLine(ChannelBuffer buffer, IcapMessage message) throws Exception {
+	protected int encodeInitialLine(ByteBuf buffer, IcapMessage message) throws Exception {
 		IcapRequest request = (IcapRequest) message;
 		int index = buffer.readableBytes();
         buffer.writeBytes(request.getMethod().toString().getBytes(IcapCodecUtil.ASCII_CHARSET));

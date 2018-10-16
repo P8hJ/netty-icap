@@ -1,16 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
     Copyright (c) 2011 Michael Mimo Moratti.
-   
-    Michael Mimo Moratti licenses this file to you under the Apache License, version 2.0
-    (the "License"); you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at:
-        http://www.apache.org/licenses/LICENSE-2.0
+    Modifications Copyright (c) 2018 eBlocker GmbH
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
     Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
-    License for the specific language governing permissions and limitations
-    under the License.
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
  -->
  <!--
  	Snapshot:
@@ -32,10 +35,10 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>ch.mimo</groupId>
+	<groupId>com.eblocker</groupId>
 	<artifactId>netty-icap</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0.2-SNAPSHOT</version>
+	<version>2.0.0-SNAPSHOT</version>
 
 	<name>The Netty ICAP Protocol Codec Project</name>
 	<url>http://icap.mimo.ch/</url>
@@ -61,10 +64,24 @@
 	</scm>
 	<dependencies>
 		<dependency>
-			<groupId>org.jboss.netty</groupId>
-			<artifactId>netty</artifactId>
-			<version>3.2.7.Final</version>
-			<!-- version>4.0.0.Alpha1-SNAPSHOT</version -->
+			<groupId>io.netty</groupId>
+			<artifactId>netty-buffer</artifactId>
+			<version>4.1.30.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-common</artifactId>
+			<version>4.1.30.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-handler</artifactId>
+			<version>4.1.30.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-codec-http</artifactId>
+			<version>4.1.30.Final</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.felix</groupId>
@@ -389,6 +406,7 @@
 					<author>true</author>
 					<doctitle>${project.name} API Reference (${project.version})</doctitle>
 					<windowtitle>${project.name} API Reference (${project.version})</windowtitle>
+					<failOnError>false</failOnError>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -464,8 +482,8 @@
 										<delete file="${project.build.directory}/${project.build.finalName}-sources.orig.jar" />
 										<checksum file="${project.build.directory}/${project.build.finalName}-sources.jar" algorithm="md5" forceoverwrite="yes" />
 										<checksum file="${project.build.directory}/${project.build.finalName}-sources.jar" algorithm="sha1" forceoverwrite="yes" />
-										<checksum file="${project.build.directory}/${project.build.finalName}-javadoc.jar" algorithm="md5" forceoverwrite="yes" />		
-										<checksum file="${project.build.directory}/${project.build.finalName}-javadoc.jar" algorithm="sha1" forceoverwrite="yes" />										
+										<!--<checksum file="${project.build.directory}/${project.build.finalName}-javadoc.jar" algorithm="md5" forceoverwrite="yes" />		-->
+										<!--<checksum file="${project.build.directory}/${project.build.finalName}-javadoc.jar" algorithm="sha1" forceoverwrite="yes" />										-->
 									</then>
 								</if>
 							</target>

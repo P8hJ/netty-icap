@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +16,14 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.handler.codec.frame.TooLongFrameException;
-import org.jboss.netty.handler.codec.http.HttpMessage;
-import org.jboss.netty.logging.InternalLogger;
-import org.jboss.netty.logging.InternalLoggerFactory;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.TooLongFrameException;
+import io.netty.handler.codec.http.FullHttpMessage;
+import io.netty.util.internal.logging.InternalLogger;
+import io.netty.util.internal.logging.InternalLoggerFactory;
 
 /**
  * This ICAP chunk aggregator will combine an received ICAP message with all body chunks.
@@ -35,7 +34,7 @@ import org.jboss.netty.logging.InternalLoggerFactory;
  * and header are removed entirely from the message. This is done because a preview message with an early
  * content termination is in essence nothing else than a full message.
  * 
- * The reader index of an HTTP content ChannelBuffer can be reset to 0 via a dedicated constructor in order to handle preview aggregation.
+ * The reader index of an HTTP content ByteBuf can be reset to 0 via a dedicated constructor in order to handle preview aggregation.
  * This is done in order to allow server implementations to handle preview messages properly. A preview message
  * is aggregated with the 100 Continue response from the client and the buffer will be therefore reset to 0 
  * so that the server handler can read the entire message.
@@ -45,7 +44,7 @@ import org.jboss.netty.logging.InternalLoggerFactory;
  * @see IcapChunkSeparator
  *
  */
-public class IcapChunkAggregator extends SimpleChannelUpstreamHandler {
+public class IcapChunkAggregator extends ChannelInboundHandlerAdapter {
 
 	private static final InternalLogger LOG = InternalLoggerFactory.getInstance(IcapChunkAggregator.class);
 	
@@ -59,15 +58,15 @@ public class IcapChunkAggregator extends SimpleChannelUpstreamHandler {
 	 * Convenience method to retrieve a HTTP request,response or 
 	 * an ICAP options response body from an aggregated IcapMessage. 
 	 * @param message
-	 * @return null or @see {@link ChannelBuffer} if a body exists.
+	 * @return null or @see {@link ByteBuf} if a body exists.
 	 */
-	public static ChannelBuffer extractHttpBodyContentFromIcapMessage(IcapMessage message) {
-		ChannelBuffer buffer = null;
+	public static ByteBuf extractHttpBodyContentFromIcapMessage(IcapMessage message) {
+		ByteBuf buffer = null;
 		if(message != null) {
-			if(message.getHttpRequest() != null && message.getHttpRequest().getContent().readableBytes() > 0) {
-				buffer = message.getHttpRequest().getContent();
-			} else if(message.getHttpResponse() != null && message.getHttpResponse().getContent().readableBytes() > 0) {
-				buffer = message.getHttpResponse().getContent();
+			if(message.getHttpRequest() != null && message.getHttpRequest().content().readableBytes() > 0) {
+				buffer = message.getHttpRequest().content();
+			} else if(message.getHttpResponse() != null && message.getHttpResponse().content().readableBytes() > 0) {
+				buffer = message.getHttpResponse().content();
 			} else if(message instanceof IcapResponse) {
 				if(((IcapResponse) message).getContent().readableBytes() > 0) {
 					buffer = ((IcapResponse) message).getContent();
@@ -97,64 +96,68 @@ public class IcapChunkAggregator extends SimpleChannelUpstreamHandler {
 		this(maxContentLength);
 		this.resetReaderIndex = resetReaderIndex;
 	}
-	
+
     @Override
-    public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
-    	Object msg = e.getMessage();
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
     	if(msg instanceof IcapMessage) {
     		LOG.debug("Aggregation of message [" + msg.getClass().getName() + "] ");
     		IcapMessage currentMessage = (IcapMessage)msg;
     		message = new IcapMessageWrapper(currentMessage);
     		if(!message.hasBody()) {
-    			Channels.fireMessageReceived(ctx,message.getIcapMessage(),e.getRemoteAddress());
+    			ctx.fireChannelRead(message.getIcapMessage());
     			message = null;
     			return;
     		}
     	} else if(msg instanceof IcapChunkTrailer) {
     		LOG.debug("Aggregation of chunk trailer [" + msg.getClass().getName() + "] ");
     		if(message == null) {
-    			ctx.sendUpstream(e);
+    			ctx.fireChannelRead(msg);
     		} else {
     			IcapChunkTrailer trailer = (IcapChunkTrailer)msg;
-    			if(trailer.getHeaderNames().size() > 0) {		
-    				for(String name : trailer.getHeaderNames()) {
-    					message.addHeader(name,trailer.getHeader(name));
+    			if(trailer.trailingHeaders().size() > 0) {
+    				for(String name : trailer.trailingHeaders().names()) {
+    					message.addHeader(name,trailer.trailingHeaders().get(name));
     				}
     			}
-    			Channels.fireMessageReceived(ctx,message.getIcapMessage(),e.getRemoteAddress());
-    		}
+    			ctx.fireChannelRead(message.getIcapMessage());
+			}
     	} else if(msg instanceof IcapChunk) {
     		LOG.debug("Aggregation of chunk [" + msg.getClass().getName() + "] ");
     		IcapChunk chunk = (IcapChunk)msg;
     		if(message == null) {
-    			ctx.sendUpstream(e);
+    			ctx.fireChannelRead(msg);
     		} else if(chunk.isLast()) {
     			if(chunk.isEarlyTerminated()) {
     				message.getIcapMessage().removeHeader(IcapHeaders.Names.PREVIEW);
     			}
-    			Channels.fireMessageReceived(ctx,message.getIcapMessage(),e.getRemoteAddress());
+				ctx.fireChannelRead(message.getIcapMessage());
     			message = null;
     		} else {
-	    		ChannelBuffer chunkBuffer = chunk.getContent();
-	    		ChannelBuffer content = message.getContent();
-    			if(content.readableBytes() > maxContentLength - chunkBuffer.readableBytes()) {
-    				throw new TooLongFrameException("ICAP content length exceeded [" + maxContentLength + "] bytes");
-    			} else {
-    				content.writeBytes(chunkBuffer);
-    				if(resetReaderIndex) {
-    					content.readerIndex(READER_INDEX_RESET_VALUE);
-    				}
-    			}
+				try {
+					ByteBuf chunkBuffer = chunk.content();
+					ByteBuf content = message.getContent();
+					if (content.readableBytes() > maxContentLength - chunkBuffer.readableBytes()) {
+						throw new TooLongFrameException(
+							"ICAP content length exceeded [" + maxContentLength + "] bytes");
+					} else {
+						content.writeBytes(chunkBuffer);
+						if (resetReaderIndex) {
+							content.readerIndex(READER_INDEX_RESET_VALUE);
+						}
+					}
+				} finally {
+					chunk.content().release();
+				}
     		}
     	} else {
-    		ctx.sendUpstream(e);
+    		ctx.fireChannelRead(msg);
     	}
     }
     
     private final class IcapMessageWrapper {
     	
     	private IcapMessage message;
-    	private HttpMessage relevantHttpMessage;
+    	private FullHttpMessage relevantHttpMessage;
     	private IcapResponse icapResponse;
     	private boolean messageWithBody;
     	
@@ -174,12 +177,12 @@ public class IcapChunkAggregator extends SimpleChannelUpstreamHandler {
     		}
     		if(messageWithBody) {
     			if(relevantHttpMessage != null) {
-	    			if(relevantHttpMessage.getContent() == null || relevantHttpMessage.getContent().readableBytes() <= 0) {
-	    				relevantHttpMessage.setContent(ChannelBuffers.dynamicBuffer());
+	    			if(relevantHttpMessage.content() == null || relevantHttpMessage.content().readableBytes() <= 0) {
+	    				relevantHttpMessage.replace(Unpooled.buffer());
 	    			}
     			} else if(icapResponse != null) {
     				if(icapResponse.getContent() == null || icapResponse.getContent().readableBytes() <= 0) {
-    					icapResponse.setContent(ChannelBuffers.dynamicBuffer());
+    					icapResponse.setContent(Unpooled.buffer());
     				}
     			}
     		}
@@ -195,16 +198,16 @@ public class IcapChunkAggregator extends SimpleChannelUpstreamHandler {
     	
     	public void addHeader(String name, String value) {
     		if(messageWithBody) {
-    			relevantHttpMessage.addHeader(name,value);
+    			relevantHttpMessage.headers().add(name,value);
     		} else {
     			throw new IcapDecodingError("A message without body cannot carry trailing headers.");
     		}
     	}
     	
-    	public ChannelBuffer getContent() {
+    	public ByteBuf getContent() {
     		if(messageWithBody) {
     			if(relevantHttpMessage != null) {
-    				return relevantHttpMessage.getContent();
+    				return relevantHttpMessage.content();
     			} else if(icapResponse != null) {
     				return icapResponse.getContent();
     			}
