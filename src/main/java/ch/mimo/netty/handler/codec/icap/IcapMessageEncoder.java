@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
 import io.netty.handler.codec.http.HttpRequest;
@@ -79,7 +78,6 @@ public abstract class IcapMessageEncoder extends MessageToMessageEncoder<Object>
 				}
 
 				encapsulated.encode(buffer);
-				buffer.writeBytes(httpMessagesBuffer);
 				buffer.writeBytes(httpMessagesBuffer);
 				out.add(buffer);
 			} finally {
