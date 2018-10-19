@@ -17,12 +17,11 @@
 package ch.mimo.netty.handler.codec.icap;
 
 import java.io.UnsupportedEncodingException;
-import java.util.List;
 import java.util.Map;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToMessageEncoder;
+import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.util.internal.logging.InternalLogger;
@@ -36,7 +35,7 @@ import io.netty.util.internal.logging.InternalLoggerFactory;
  * @see IcapRequestEncoder
  * @see IcapResponseEncoder
  */
-public abstract class IcapMessageEncoder extends MessageToMessageEncoder<Object> {
+public abstract class IcapMessageEncoder extends MessageToByteEncoder<Object> {
 	
 	private final InternalLogger LOG;
 	
@@ -44,14 +43,13 @@ public abstract class IcapMessageEncoder extends MessageToMessageEncoder<Object>
 		LOG = InternalLoggerFactory.getInstance(getClass());
 	}
 
-	@Override
-	protected void encode(ChannelHandlerContext ctx, Object msg, List<Object> out) throws Exception {
-		LOG.debug("Encoding [" + msg.getClass().getName() + "]");
+    @Override
+    protected void encode(ChannelHandlerContext ctx, Object msg, ByteBuf out) throws Exception {
+        LOG.debug("Encoding [" + msg.getClass().getName() + "]");
 		if(msg instanceof IcapMessage) {
 			IcapMessage message = (IcapMessage)msg;
-            ByteBuf buffer = ctx.alloc().buffer();
-			encodeInitialLine(buffer, message);
-			encodeHeaders(buffer, message);
+			encodeInitialLine(out, message);
+			encodeHeaders(out, message);
 
 			Encapsulated encapsulated = new Encapsulated();
             int index = 0;
@@ -77,41 +75,38 @@ public abstract class IcapMessageEncoder extends MessageToMessageEncoder<Object>
 					encapsulated.addEntry(IcapMessageElementEnum.NULLBODY, index);
 				}
 
-				encapsulated.encode(buffer);
-				buffer.writeBytes(httpMessagesBuffer);
-				out.add(buffer);
+				encapsulated.encode(out);
+				out.writeBytes(httpMessagesBuffer);
 			} finally {
 				if (httpMessagesBuffer != null) {
 				    httpMessagesBuffer.release();
                 }
 			}
 		} else if(msg instanceof IcapChunk) {
-			ByteBuf buffer = ctx.alloc().buffer();
 			IcapChunk chunk = (IcapChunk)msg;
 			if(chunk.isLast()) {
 				if(chunk.isEarlyTerminated()) {
-					buffer.writeBytes(IcapCodecUtil.NATIVE_IEOF_SEQUENCE);
-					buffer.writeBytes(IcapCodecUtil.CRLF);
-					buffer.writeBytes(IcapCodecUtil.CRLF);
+					out.writeBytes(IcapCodecUtil.NATIVE_IEOF_SEQUENCE);
+					out.writeBytes(IcapCodecUtil.CRLF);
+					out.writeBytes(IcapCodecUtil.CRLF);
 				} else if(msg instanceof IcapChunkTrailer) { 
-					buffer.writeByte((byte) '0');
-					buffer.writeBytes(IcapCodecUtil.CRLF);
-					encodeTrailingHeaders(buffer,(IcapChunkTrailer)msg);
-					buffer.writeBytes(IcapCodecUtil.CRLF);
+					out.writeByte((byte) '0');
+					out.writeBytes(IcapCodecUtil.CRLF);
+					encodeTrailingHeaders(out,(IcapChunkTrailer)msg);
+					out.writeBytes(IcapCodecUtil.CRLF);
 				} else {
-					buffer.writeByte((byte) '0');
-					buffer.writeBytes(IcapCodecUtil.CRLF);
-					buffer.writeBytes(IcapCodecUtil.CRLF);
+					out.writeByte((byte) '0');
+					out.writeBytes(IcapCodecUtil.CRLF);
+					out.writeBytes(IcapCodecUtil.CRLF);
 				}
 			} else {
 				ByteBuf chunkBuffer = chunk.content();
 				int contentLength = chunkBuffer.readableBytes();
-				buffer.writeBytes(Integer.toHexString(contentLength).getBytes(IcapCodecUtil.ASCII_CHARSET));
-				buffer.writeBytes(IcapCodecUtil.CRLF);
-				buffer.writeBytes(chunkBuffer);
-				buffer.writeBytes(IcapCodecUtil.CRLF);
+				out.writeBytes(Integer.toHexString(contentLength).getBytes(IcapCodecUtil.ASCII_CHARSET));
+				out.writeBytes(IcapCodecUtil.CRLF);
+				out.writeBytes(chunkBuffer);
+				out.writeBytes(IcapCodecUtil.CRLF);
 			}
-			out.add(buffer);
 		}
 	}
 
