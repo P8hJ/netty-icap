@@ -67,9 +67,9 @@ public class IcapChunkSeparator extends ChannelOutboundHandlerAdapter {
 				while(content.readableBytes() > 0) {
 					IcapChunk chunk;
 					if(content.readableBytes() > chunkSize) {
-						chunk = new DefaultIcapChunk(content.readBytes(chunkSize));
+						chunk = new DefaultIcapChunk(content.readRetainedSlice(chunkSize));
 					} else {
-						chunk = new DefaultIcapChunk(content.readBytes(content.readableBytes()));
+						chunk = new DefaultIcapChunk(content.readRetainedSlice(content.readableBytes()));
 					}
 					chunk.setPreviewChunk(isPreview);
 					chunk.setEarlyTermination(isEarlyTerminated);
