@@ -17,6 +17,7 @@
 package ch.mimo.netty.handler.codec.icap;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
@@ -35,6 +36,7 @@ import io.netty.util.internal.logging.InternalLoggerFactory;
  * @author Michael Mimo Moratti (mimo@mimo.ch)
  *
  */
+@ChannelHandler.Sharable
 public class IcapChunkSeparator extends ChannelOutboundHandlerAdapter {
 
 	private static final InternalLogger LOG = InternalLoggerFactory.getInstance(IcapChunkSeparator.class);

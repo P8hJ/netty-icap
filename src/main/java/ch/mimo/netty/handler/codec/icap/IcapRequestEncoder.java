@@ -17,6 +17,7 @@
 package ch.mimo.netty.handler.codec.icap;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandler;
 
 /**
  * Encodes an ICAP Request which takes an @see {@link IcapRequest} or @see {@link IcapChunk} to encode.
@@ -24,6 +25,7 @@ import io.netty.buffer.ByteBuf;
  * @author Michael Mimo Moratti (mimo@mimo.ch)
  *
  */
+@ChannelHandler.Sharable
 public class IcapRequestEncoder extends IcapMessageEncoder {
 
 	public IcapRequestEncoder() {

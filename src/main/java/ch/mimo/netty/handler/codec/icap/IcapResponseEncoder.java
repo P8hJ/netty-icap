@@ -17,12 +17,14 @@
 package ch.mimo.netty.handler.codec.icap;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandler;
 
 /**
  * ICAP Response encoder which takes an @see {@link IcapResponse} or @see {@link IcapChunk} to encode.
  * @author Michael Mimo Moratti (mimo@mimo.ch)
  *
  */
+@ChannelHandler.Sharable
 public class IcapResponseEncoder extends IcapMessageEncoder {
 
 	@Override
