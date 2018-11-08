@@ -28,6 +28,7 @@ public class DefaultIcapResponse extends AbstractIcapMessage implements IcapResp
 
 	private IcapResponseStatus status;
 	private ByteBuf optionsContent;
+	private Integer useOriginalBodyOffset;
 	
 	/**
 	 * Will create an instance of IcapResponse.
@@ -61,5 +62,15 @@ public class DefaultIcapResponse extends AbstractIcapMessage implements IcapResp
 	@Override
 	public String toString() {
 		return super.toString() + StringUtil.NEWLINE + "Response Status: " + status.name();
+	}
+
+	@Override
+	public void setUseOriginalBody(int offset) {
+		useOriginalBodyOffset = offset;
+	}
+
+	@Override
+	public Integer getUseOriginalBody() {
+		return useOriginalBodyOffset;
 	}
 }

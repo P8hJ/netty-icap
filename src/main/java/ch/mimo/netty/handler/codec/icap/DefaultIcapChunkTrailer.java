@@ -15,7 +15,6 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 
 /**
@@ -31,6 +30,7 @@ public class DefaultIcapChunkTrailer extends DefaultLastHttpContent implements I
 	
 	private boolean preview;
 	private boolean earlyTerminated;
+	private Integer useOriginalBodyOffset;
 	
 	public DefaultIcapChunkTrailer() {
 		this.preview = false;
@@ -68,7 +68,17 @@ public class DefaultIcapChunkTrailer extends DefaultLastHttpContent implements I
 		return true;
 	}
 
+	@Override
+	public void setUseOriginalBody(Integer offset) {
+		this.useOriginalBodyOffset = offset;
+	}
+
+	@Override
+	public Integer getUseOriginalBody() {
+		return useOriginalBodyOffset;
+	}
+
 	public String toString() {
-		return "DeafultIcapChunkTrailer: [isPreviewChunk=" + preview + "] [wasEarlyTerminated=" + earlyTerminated + "]";
+		return "DefaultIcapChunkTrailer: [isPreviewChunk=" + preview + "] [wasEarlyTerminated=" + earlyTerminated + "] [useOriginalBodyOffset=" + useOriginalBodyOffset + "]";
 	}
 }

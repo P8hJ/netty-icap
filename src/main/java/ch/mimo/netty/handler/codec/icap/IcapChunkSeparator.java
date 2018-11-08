@@ -58,9 +58,11 @@ public class IcapChunkSeparator extends ChannelOutboundHandlerAdapter {
 			if(content != null) {
 				boolean isPreview = message.isPreviewMessage();
 				boolean isEarlyTerminated = false;
+				Integer useOriginalBody = getUseOriginalBody(message);
 				if(isPreview) {
 					isEarlyTerminated = content.readableBytes() < message.getPreviewAmount();
 				}
+				boolean appendTrailer = content.readableBytes() > 0 || useOriginalBody != null;
 				while(content.readableBytes() > 0) {
 					IcapChunk chunk;
 					if(content.readableBytes() > chunkSize) {
@@ -71,12 +73,13 @@ public class IcapChunkSeparator extends ChannelOutboundHandlerAdapter {
 					chunk.setPreviewChunk(isPreview);
 					chunk.setEarlyTermination(isEarlyTerminated);
 					ctx.write(chunk);
-					if(chunk.isLast() || content.readableBytes() <= 0) {
-						IcapChunkTrailer trailer = new DefaultIcapChunkTrailer();
-						trailer.setPreviewChunk(isPreview);
-						trailer.setEarlyTermination(isEarlyTerminated);
-						ctx.write(trailer);
-					}
+				}
+				if (appendTrailer) {
+					IcapChunkTrailer trailer = new DefaultIcapChunkTrailer();
+					trailer.setPreviewChunk(isPreview);
+					trailer.setEarlyTermination(isEarlyTerminated);
+					trailer.setUseOriginalBody(useOriginalBody);
+					ctx.write(trailer);
 				}
 			}
 			ctx.flush();
@@ -93,13 +96,21 @@ public class IcapChunkSeparator extends ChannelOutboundHandlerAdapter {
 			if(content != null) {
 				message.setBody(IcapMessageElementEnum.OPTBODY);
 			}
-		} else if(message.getHttpRequest() != null && message.getHttpRequest().content() != null && message.getHttpRequest().content().readableBytes() > 0) {
+		} else if(message.getHttpRequest() != null && message.getHttpRequest().content() != null && (message.getHttpRequest().content().readableBytes() > 0 || message instanceof IcapResponse && ((IcapResponse)message).getUseOriginalBody() != null)) {
 			content = message.getHttpRequest().content();
 			message.setBody(IcapMessageElementEnum.REQBODY);
-		} else if(message.getHttpResponse() != null && message.getHttpResponse().content() != null && message.getHttpResponse().content().readableBytes() > 0) {
+		} else if(message.getHttpResponse() != null && message.getHttpResponse().content() != null && (message.getHttpResponse().content().readableBytes() > 0 || message instanceof IcapResponse && ((IcapResponse)message).getUseOriginalBody() != null)) {
 			content = message.getHttpResponse().content();
 			message.setBody(IcapMessageElementEnum.RESBODY);
 		}
 		return content;
+	}
+
+	private Integer getUseOriginalBody(IcapMessage message) {
+		if (!(message instanceof IcapResponse)) {
+			return null;
+		}
+
+		return ((IcapResponse) message).getUseOriginalBody();
 	}
 }

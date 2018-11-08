@@ -84,9 +84,13 @@ public abstract class IcapMessageEncoder extends MessageToMessageEncoder<Object>
 					buffer.writeBytes(IcapCodecUtil.NATIVE_IEOF_SEQUENCE);
 					buffer.writeBytes(IcapCodecUtil.CRLF);
 					buffer.writeBytes(IcapCodecUtil.CRLF);
-				} else if(msg instanceof IcapChunkTrailer) { 
+				} else if(msg instanceof IcapChunkTrailer) {
 					buffer.writeByte((byte) '0');
 					buffer.writeBytes(IcapCodecUtil.CRLF);
+					if (((IcapChunkTrailer)msg).getUseOriginalBody() != null) {
+						buffer.writeBytes(";use-original-body=".getBytes(IcapCodecUtil.ASCII_CHARSET));
+						buffer.writeBytes(Integer.toString(((IcapChunkTrailer)msg).getUseOriginalBody()).getBytes(IcapCodecUtil.ASCII_CHARSET));
+					}
 					encodeTrailingHeaders(buffer,(IcapChunkTrailer)msg);
 					buffer.writeBytes(IcapCodecUtil.CRLF);
 				} else {
