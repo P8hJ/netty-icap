@@ -21,6 +21,7 @@ import java.nio.charset.Charset;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.util.ReferenceCountUtil;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -36,7 +37,7 @@ public class IcapRequestEncoderPipelineTest extends AbstractIcapTest {
 	@Test
 	public void encodeREQMODRequestWithoutBody() throws UnsupportedEncodingException {
 		embeddedChannel.writeOutbound(DataMockery.createREQMODWithGetRequestNoBodyIcapMessage());
-		ByteBuf buffer = embeddedChannel.readOutbound();
+		ByteBuf buffer = readOutbound();
 		assertNotNull("buffer was null",buffer);
 		assertEquals("buffer content is wrong",DataMockery.createREQMODWithGetRequestNoBody().toString(Charset.defaultCharset()),buffer.toString(Charset.defaultCharset()));
 	}
@@ -44,18 +45,22 @@ public class IcapRequestEncoderPipelineTest extends AbstractIcapTest {
 	@Test
 	public void encodeREQMODRequestWithBody() throws UnsupportedEncodingException {
 		embeddedChannel.writeOutbound(DataMockery.createREQMODWithGetRequestAndDataIcapMessage());
-		ByteBuf buffer = embeddedChannel.readOutbound();
+		ByteBuf buffer = readOutbound();
 		assertNotNull("message buffer was null",buffer);
 		String message = buffer.toString(Charset.defaultCharset());
 		assertEquals("message buffer content is wrong",DataMockery.createREQMODWithGetRequestAndData().toString(Charset.defaultCharset()),message);
-		buffer = embeddedChannel.readOutbound();
+		buffer = readOutbound();
 		assertNotNull("chnunk buffer was null",buffer);
 		message = buffer.toString(Charset.defaultCharset());
 		assertEquals("chunk buffer content is wrong",DataMockery.createREQMODWithGetRequestAndDataFirstChunk().toString(Charset.defaultCharset()),message);
-		buffer = embeddedChannel.readOutbound();
+		buffer = readOutbound();
 		assertNotNull("last chnunk buffer was null",buffer);
 		message = buffer.toString(Charset.defaultCharset());
 		assertEquals("last chunk is wrong",DataMockery.createREQMODWithGetRequestAndDataLastChunk().toString(Charset.defaultCharset()),message);
-		assertNull("poll is not empty",embeddedChannel.readOutbound());
+		assertNull("poll is not empty",readOutbound());
+	}
+
+	private <T> T readOutbound() {
+		return ReferenceCountUtil.releaseLater((T)embeddedChannel.readOutbound());
 	}
 }

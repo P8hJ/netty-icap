@@ -17,11 +17,13 @@
 package ch.mimo.netty.handler.codec.icap;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.TooLongFrameException;
 import io.netty.handler.codec.http.FullHttpMessage;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 
@@ -102,7 +104,7 @@ public class IcapChunkAggregator extends ChannelInboundHandlerAdapter {
     	if(msg instanceof IcapMessage) {
     		LOG.debug("Aggregation of message [" + msg.getClass().getName() + "] ");
     		IcapMessage currentMessage = (IcapMessage)msg;
-    		message = new IcapMessageWrapper(currentMessage);
+    		message = new IcapMessageWrapper(ctx.alloc(), currentMessage);
     		if(!message.hasBody()) {
     			ctx.fireChannelRead(message.getIcapMessage());
     			message = null;
@@ -137,6 +139,7 @@ public class IcapChunkAggregator extends ChannelInboundHandlerAdapter {
 					ByteBuf chunkBuffer = chunk.content();
 					ByteBuf content = message.getContent();
 					if (content.readableBytes() > maxContentLength - chunkBuffer.readableBytes()) {
+						content.release();
 						throw new TooLongFrameException(
 							"ICAP content length exceeded [" + maxContentLength + "] bytes");
 					} else {
@@ -161,30 +164,28 @@ public class IcapChunkAggregator extends ChannelInboundHandlerAdapter {
     	private IcapResponse icapResponse;
     	private boolean messageWithBody;
     	
-    	public IcapMessageWrapper(IcapMessage message) {
+    	public IcapMessageWrapper(ByteBufAllocator allocator, IcapMessage message) {
     		this.message = message;
     		if(message.getBodyType() != null) {
 	    		if(message.getBodyType().equals(IcapMessageElementEnum.REQBODY)) {
-	    			relevantHttpMessage = message.getHttpRequest();
+					FullHttpRequest newRequest = message.getHttpRequest().replace(allocator.buffer());
+					message.getHttpRequest().release();
+					relevantHttpMessage = newRequest;
+					message.setHttpRequest(newRequest);
 	    			messageWithBody = true;
 	    		} else if(message.getBodyType().equals(IcapMessageElementEnum.RESBODY)) {
-	    			relevantHttpMessage = message.getHttpResponse();
+					FullHttpResponse newResponse =  message.getHttpResponse().replace(allocator.buffer());
+					message.getHttpResponse().release();
+					relevantHttpMessage = newResponse;
+					message.setHttpResponse(newResponse);
 	    			messageWithBody = true;
 	    		} else if(message instanceof IcapResponse && message.getBodyType().equals(IcapMessageElementEnum.OPTBODY)) {
 	    			icapResponse = (IcapResponse)message;
 	    			messageWithBody = true;
+	    			if (icapResponse.getContent() == null || icapResponse.getContent().readableBytes() <= 0) {
+	    				icapResponse.setContent(allocator.buffer());
+					}
 	    		}
-    		}
-    		if(messageWithBody) {
-    			if(relevantHttpMessage != null) {
-	    			if(relevantHttpMessage.content() == null || relevantHttpMessage.content().readableBytes() <= 0) {
-	    				relevantHttpMessage.replace(Unpooled.buffer());
-	    			}
-    			} else if(icapResponse != null) {
-    				if(icapResponse.getContent() == null || icapResponse.getContent().readableBytes() <= 0) {
-    					icapResponse.setContent(Unpooled.buffer());
-    				}
-    			}
     		}
     	}
     	
