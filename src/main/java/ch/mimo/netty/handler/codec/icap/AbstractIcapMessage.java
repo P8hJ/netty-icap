@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
  * Modifications Copyright (c) 2018 eBlocker GmbH
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,12 +22,11 @@ import java.util.Set;
 
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.util.internal.StringUtil;
 
 /**
- * This is the main Icap message implementation where 
+ * This is the main Icap message implementation where
  * all common @see {@link DefaultIcapRequest} and @see {@link DefaultIcapResponse} member are present.
- * 
+ *
  * @author Michael Mimo Moratti (mimo@mimo.ch)
  *
  */
@@ -162,7 +161,7 @@ public abstract class AbstractIcapMessage implements IcapMessage {
 	
 	@Override
 	public boolean isPreviewMessage() {
-		return icapHeader.getPreviewHeaderValue() > 0;
+		return icapHeader.getPreviewHeaderValue() >= 0;
 	}
 	
 	public IcapMessage setBody(IcapMessageElementEnum body) {
@@ -200,11 +199,12 @@ public abstract class AbstractIcapMessage implements IcapMessage {
         	buf.append("--- encapsulated HTTP Response ---").append(StringUtil.NEWLINE);
         	buf.append(httpResponse.toString());
         	if(httpResponse.content() != null && httpResponse.content().readableBytes() > 0) {
-        		buf.append(StringUtil.NEWLINE).append("--> HTTP Response contains [" + httpResponse.content().readableBytes() + "] bytes of data").append(StringUtil.NEWLINE);;
+        		buf.append(StringUtil.NEWLINE).append("--> HTTP Response contains [" + httpResponse.content().readableBytes() + "] bytes of data");
         	}
         }
         
         if(isPreviewMessage()) {
+            buf.append(StringUtil.NEWLINE);
         	buf.append("--- Preview ---").append(StringUtil.NEWLINE);
         	buf.append("Preview size: " + icapHeader.getPreviewHeaderValue());
         }
