@@ -267,10 +267,10 @@ public abstract class AbstractIcapMessage implements IcapMessage {
 	public AbstractIcapMessage retain(int increment) {
 		refCount += increment;
 		if (httpRequest != null) {
-			httpRequest.retain(1);
+			httpRequest.retain(increment);
 		}
 		if (httpResponse != null) {
-			httpResponse.retain(1);
+			httpResponse.retain(increment);
 		}
 		return this;
 	}
