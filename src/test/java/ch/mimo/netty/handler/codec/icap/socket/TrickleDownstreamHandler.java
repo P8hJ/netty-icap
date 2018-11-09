@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +16,13 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap.socket;
 
-import static org.jboss.netty.channel.Channels.write;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelOutboundHandlerAdapter;
+import io.netty.channel.ChannelPromise;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.ChannelDownstreamHandler;
-import org.jboss.netty.channel.ChannelEvent;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.MessageEvent;
-
-public class TrickleDownstreamHandler implements ChannelDownstreamHandler {
+public class TrickleDownstreamHandler extends ChannelOutboundHandlerAdapter {
 
 	private long latency;
 	private int chunkSize;
@@ -33,24 +31,23 @@ public class TrickleDownstreamHandler implements ChannelDownstreamHandler {
 		this.latency = latency;
 		this.chunkSize = chunkSize;
 	}
-	
+
 	@Override
-	public void handleDownstream(ChannelHandlerContext ctx, ChannelEvent e) throws Exception {
-		if(e instanceof MessageEvent) {
-			MessageEvent event = (MessageEvent)e;
-			ChannelBuffer buffer = (ChannelBuffer)event.getMessage();
+	public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+		if (msg instanceof ByteBuf) {
+			ByteBuf buffer = (ByteBuf)msg;
 			while(buffer.readableBytes() > 0) {
-				ChannelBuffer newBuffer = ChannelBuffers.dynamicBuffer();
+				ByteBuf newBuffer = Unpooled.buffer();
 				if(buffer.readableBytes() >= chunkSize) {
 					newBuffer.writeBytes(buffer.readBytes(chunkSize));
 				} else {
 					newBuffer.writeBytes(buffer.readBytes(buffer.readableBytes()));
 				}
 				Thread.sleep(latency);
-				write(ctx, e.getFuture(),newBuffer,event.getRemoteAddress());
+				ctx.writeAndFlush(newBuffer);
 			}
 		} else {
-			ctx.sendDownstream(e);
+			ctx.writeAndFlush(msg);
 		}
 	}
 

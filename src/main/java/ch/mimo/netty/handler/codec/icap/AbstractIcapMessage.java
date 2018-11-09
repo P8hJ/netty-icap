@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +20,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.util.internal.StringUtil;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.util.internal.StringUtil;
 
 /**
  * This is the main Icap message implementation where 
@@ -32,12 +33,14 @@ import org.jboss.netty.util.internal.StringUtil;
  */
 public abstract class AbstractIcapMessage implements IcapMessage {
 
+	private volatile int refCount = 1;
+
 	private IcapHeaders icapHeader;
 	private IcapVersion version;
 	private Encapsulated encapsulated;
 	
-	private HttpRequest httpRequest;
-	private HttpResponse httpResponse;
+	private FullHttpRequest httpRequest;
+	private FullHttpResponse httpResponse;
 	
 	private IcapMessageElementEnum body;
 	
@@ -123,12 +126,12 @@ public abstract class AbstractIcapMessage implements IcapMessage {
 	}
 
 	@Override
-	public HttpRequest getHttpRequest() {
+	public FullHttpRequest getHttpRequest() {
 		return httpRequest;
 	}
 	
 	@Override
-	public IcapMessage setHttpRequest(HttpRequest httpRequest) {
+	public IcapMessage setHttpRequest(FullHttpRequest httpRequest) {
 		this.httpRequest = httpRequest;
 		return this;
 	}
@@ -139,11 +142,11 @@ public abstract class AbstractIcapMessage implements IcapMessage {
 	}
 
 	@Override
-	public HttpResponse getHttpResponse() {
+	public FullHttpResponse getHttpResponse() {
 		return httpResponse;
 	}
 	
-	public IcapMessage setHttpResponse(HttpResponse response) {
+	public IcapMessage setHttpResponse(FullHttpResponse response) {
 		this.httpResponse = response;
 		return this;
 	}
@@ -190,16 +193,16 @@ public abstract class AbstractIcapMessage implements IcapMessage {
         if(httpRequest != null) {
         	buf.append("--- encapsulated HTTP Request ---").append(StringUtil.NEWLINE);
         	buf.append(httpRequest.toString());
-        	if(httpRequest.getContent() != null && httpRequest.getContent().readableBytes() > 0) {
-        		buf.append(StringUtil.NEWLINE).append("--> HTTP Request contains [" + httpRequest.getContent().readableBytes() + "] bytes of data").append(StringUtil.NEWLINE);
+        	if(httpRequest.content() != null && httpRequest.content().readableBytes() > 0) {
+        		buf.append(StringUtil.NEWLINE).append("--> HTTP Request contains [" + httpRequest.content().readableBytes() + "] bytes of data").append(StringUtil.NEWLINE);
         	}
         }
         
         if(httpResponse != null) {
         	buf.append("--- encapsulated HTTP Response ---").append(StringUtil.NEWLINE);
         	buf.append(httpResponse.toString());
-        	if(httpResponse.getContent() != null && httpResponse.getContent().readableBytes() > 0) {
-        		buf.append(StringUtil.NEWLINE).append("--> HTTP Response contains [" + httpResponse.getContent().readableBytes() + "] bytes of data").append(StringUtil.NEWLINE);;
+        	if(httpResponse.content() != null && httpResponse.content().readableBytes() > 0) {
+        		buf.append(StringUtil.NEWLINE).append("--> HTTP Response contains [" + httpResponse.content().readableBytes() + "] bytes of data").append(StringUtil.NEWLINE);;
         	}
         }
         
@@ -219,4 +222,78 @@ public abstract class AbstractIcapMessage implements IcapMessage {
             buf.append(StringUtil.NEWLINE);
         }
     }
+
+	@Override
+	public int refCnt() {
+		return refCount;
+	}
+
+	@Override
+	public boolean release() {
+		if (httpRequest != null) {
+			httpRequest.release();
+		}
+		if (httpResponse != null) {
+			httpResponse.release();
+		}
+		return --refCount == 0;
+	}
+
+	@Override
+	public boolean release(int decrement) {
+		if (httpRequest != null) {
+			httpRequest.release(decrement);
+		}
+		if (httpResponse != null) {
+			httpResponse.release(decrement);
+		}
+		refCount -= decrement;
+		return refCount == 0;
+	}
+
+	@Override
+	public AbstractIcapMessage retain() {
+		++refCount;
+		if (httpRequest != null) {
+			httpRequest.retain();
+		}
+		if (httpResponse != null) {
+			httpResponse.retain();
+		}
+		return this;
+	}
+
+	@Override
+	public AbstractIcapMessage retain(int increment) {
+		refCount += increment;
+		if (httpRequest != null) {
+			httpRequest.retain(increment);
+		}
+		if (httpResponse != null) {
+			httpResponse.retain(increment);
+		}
+		return this;
+	}
+
+	@Override
+	public AbstractIcapMessage touch() {
+		if (httpRequest != null) {
+			httpRequest.touch();
+		}
+		if (httpResponse != null) {
+			httpResponse.touch();
+		}
+		return this;
+	}
+
+	@Override
+	public AbstractIcapMessage touch(Object hint) {
+		if (httpRequest != null) {
+			httpRequest.touch(hint);
+		}
+		if (httpResponse != null) {
+			httpResponse.touch(hint);
+		}
+		return this;
+	}
 }

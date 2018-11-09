@@ -1,6 +1,7 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
- * 
+ * Modifications Copyright (c) 2018 eBlocker GmbH
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,8 +16,8 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.handler.codec.http.DefaultHttpChunk;
+import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.http.DefaultHttpContent;
 
 /**
  * This is the main Chunk implementation class. It extends @see {@link DefaultHttpChunk} and adds
@@ -25,13 +26,15 @@ import org.jboss.netty.handler.codec.http.DefaultHttpChunk;
  * @author Michael Mimo Moratti (mimo@mimo.ch)
  *
  */
-public class DefaultIcapChunk extends DefaultHttpChunk implements IcapChunk {
+public class DefaultIcapChunk extends DefaultHttpContent implements IcapChunk {
 
 	private boolean preview;
 	private boolean earlyTerminated;
-	
-	public DefaultIcapChunk(ChannelBuffer content) {
+	private boolean last;
+
+	public DefaultIcapChunk(ByteBuf content) {
 		super(content);
+		last = !content.isReadable();
 	}
 	
 	public void setPreviewChunk(boolean preview) {
@@ -49,8 +52,13 @@ public class DefaultIcapChunk extends DefaultHttpChunk implements IcapChunk {
 	public boolean isEarlyTerminated() {
 		return earlyTerminated;
 	}
-	
+
+	@Override
+	public boolean isLast() {
+		return last;
+	}
+
 	public String toString() {
-		return "DefaultIcapChunk: [isPreviewChunk=" + preview + "] [wasEarlyTerminated=" + earlyTerminated + "] [data=" + getContent().readableBytes() + "]";
+		return "DefaultIcapChunk: [isPreviewChunk=" + preview + "] [wasEarlyTerminated=" + earlyTerminated + "] [data=" + content().readableBytes() + "]";
 	}
 }

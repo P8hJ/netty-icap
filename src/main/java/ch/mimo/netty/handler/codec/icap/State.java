@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +16,7 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import org.jboss.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 
 /**
  * Abstract state implementation for all Decoder states.
@@ -38,19 +39,19 @@ public abstract class State<T extends Object> {
 	/**
 	 * Preparation method
 	 */
-	public abstract void onEntry(ChannelBuffer buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException;
+	public abstract void onEntry(ByteBuf buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException;
 	
 	/**
 	 * execution method
 	 * @return @see {@link StateReturnValue} that contains, dependent on the relevance a return value.
 	 */
-	public abstract StateReturnValue execute(ChannelBuffer buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException;
+	public abstract StateReturnValue execute(ByteBuf buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException;
 	
 	/**
 	 * Flow decision method
 	 * @return has to return a valid next state. Can be itself.
 	 */
-	public abstract StateEnum onExit(ChannelBuffer buffer, IcapMessageDecoder icapMessageDecoder, T decisionInformation) throws DecodingException;
+	public abstract StateEnum onExit(ByteBuf buffer, IcapMessageDecoder icapMessageDecoder, T decisionInformation) throws DecodingException;
 
 	public String toString() {
 		return name;

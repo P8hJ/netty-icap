@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +16,8 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.util.internal.StringUtil;
+import io.netty.buffer.ByteBuf;
+import io.netty.util.internal.StringUtil;
 
 /**
  * Main Icap Response implementation. This is the starting point to create any Icap response.
@@ -27,7 +28,7 @@ import org.jboss.netty.util.internal.StringUtil;
 public class DefaultIcapResponse extends AbstractIcapMessage implements IcapResponse {
 
 	private IcapResponseStatus status;
-	private ChannelBuffer optionsContent;
+	private ByteBuf optionsContent;
 	
 	/**
 	 * Will create an instance of IcapResponse.
@@ -50,16 +51,68 @@ public class DefaultIcapResponse extends AbstractIcapMessage implements IcapResp
 		return status;
 	}
 
-	public void setContent(ChannelBuffer optionsContent) {
+	public void setContent(ByteBuf optionsContent) {
 		this.optionsContent = optionsContent;
 	}
 
-	public ChannelBuffer getContent() {
+	public ByteBuf getContent() {
 		return optionsContent;
 	}
 
 	@Override
 	public String toString() {
 		return super.toString() + StringUtil.NEWLINE + "Response Status: " + status.name();
+	}
+
+	@Override
+	public boolean release() {
+		if (optionsContent != null) {
+			optionsContent.release();
+		}
+		return super.release();
+	}
+
+	@Override
+	public boolean release(int decrement) {
+		if (optionsContent != null) {
+			optionsContent.release(decrement);
+		}
+		return super.release(decrement);
+	}
+
+	@Override
+	public DefaultIcapResponse retain() {
+		super.retain();
+		if (optionsContent != null) {
+			optionsContent.retain();
+		}
+		return this;
+	}
+
+	@Override
+	public DefaultIcapResponse retain(int increment) {
+		super.retain(increment);
+		if (optionsContent != null) {
+			optionsContent.retain(increment);
+		}
+		return this;
+	}
+
+	@Override
+	public DefaultIcapResponse touch() {
+		super.touch();
+		if (optionsContent != null) {
+			optionsContent.touch();
+		}
+		return this;
+	}
+
+	@Override
+	public DefaultIcapResponse touch(Object hint) {
+		super.touch(hint);
+		if (optionsContent != null) {
+			optionsContent.touch();
+		}
+		return this;
 	}
 }

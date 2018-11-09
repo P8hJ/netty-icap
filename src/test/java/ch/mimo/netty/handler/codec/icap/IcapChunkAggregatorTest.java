@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,201 +19,206 @@ package ch.mimo.netty.handler.codec.icap;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 
+import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.util.ReferenceCountUtil;
 import junit.framework.Assert;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.handler.codec.embedder.DecoderEmbedder;
+import io.netty.buffer.ByteBuf;
 import org.junit.Before;
 import org.junit.Test;
 
 public class IcapChunkAggregatorTest extends AbstractIcapTest {
 
-	private DecoderEmbedder<Object> embedder;
-	
+    private EmbeddedChannel embeddedChannel;
+
 	@Before
 	public void setUp() throws UnsupportedEncodingException {
-		embedder = new DecoderEmbedder<Object>(new IcapChunkAggregator(4012));
+	    embeddedChannel = new EmbeddedChannel(new IcapChunkAggregator(4012));
 	}
-	
+
 	@Test
 	public void offerUnknownObject() {
-		embedder.offer("The ultimate answer is 42");
+		embeddedChannel.writeInbound("The ultimate answer is 42");
 	}
-	
+
 	@Test
 	public void retrieveOptionsBody() {
-		ChannelBuffer buffer = IcapChunkAggregator.extractHttpBodyContentFromIcapMessage(DataMockery.createOPTIONSResponseWithBodyAndContentIcapResponse());
+		ByteBuf buffer = IcapChunkAggregator.extractHttpBodyContentFromIcapMessage(DataMockery.createOPTIONSResponseWithBodyAndContentIcapResponse());
 		assertNotNull("buffer was null",buffer);
 	}
-	
+
 	@Test
 	public void retrieveHttpRequestBody() {
-		ChannelBuffer buffer = IcapChunkAggregator.extractHttpBodyContentFromIcapMessage(DataMockery.createREQMODWithBodyContentIcapMessage());
+		ByteBuf buffer = IcapChunkAggregator.extractHttpBodyContentFromIcapMessage(DataMockery.createREQMODWithBodyContentIcapMessage());
 		assertNotNull("buffer was null",buffer);
 	}
-	
+
 	@Test
 	public void retrieveHttpResponseBody() {
-		ChannelBuffer buffer = IcapChunkAggregator.extractHttpBodyContentFromIcapMessage(DataMockery.createRESPMODWithPreviewDataIcapRequest());
+		ByteBuf buffer = IcapChunkAggregator.extractHttpBodyContentFromIcapMessage(DataMockery.createRESPMODWithPreviewDataIcapRequest());
 		assertNotNull("buffer was null",buffer);
 	}
-	
-	
+
+
 	@Test
 	public void aggregatorOPTIONSResponseWithBody() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.createOPTIONSResponseWithBodyIcapResponse());
-		embedder.offer(DataMockery.createOPTIONSRequestWithBodyBodyChunkIcapChunk());
-		embedder.offer(DataMockery.createOPTIONSRequestWithBodyLastChunkIcapChunk());
-		IcapResponse response = (IcapResponse)embedder.poll();
+		embeddedChannel.writeInbound(DataMockery.createOPTIONSResponseWithBodyIcapResponse());
+		embeddedChannel.writeInbound(DataMockery.createOPTIONSRequestWithBodyBodyChunkIcapChunk());
+		embeddedChannel.writeInbound(DataMockery.createOPTIONSRequestWithBodyLastChunkIcapChunk());
+		IcapResponse response = readInbound();
 		assertNotNull("response was null",response);
 		assertEquals("wrong body value in response",IcapMessageElementEnum.OPTBODY,response.getBodyType());
 		assertNotNull("no body in options response",response.getContent());
-		ChannelBuffer buffer = response.getContent();
+		ByteBuf buffer = response.getContent();
 		assertEquals("body was wrong","This is a options body chunk.",buffer.toString(Charset.defaultCharset()));
 	}
-	
+
 	@Test
 	public void aggregatorREQMODWithGetRequestWithoutChunks() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.createREQMODWithGetRequestNoBodyAndEncapsulationHeaderIcapMessage());
-		IcapRequest request = (IcapRequest)embedder.poll();
+		embeddedChannel.writeInbound(DataMockery.createREQMODWithGetRequestNoBodyAndEncapsulationHeaderIcapMessage());
+		IcapRequest request = readInbound();
 		DataMockery.assertCreateREQMODWithGetRequestNoBody(request);
 	}
-	
+
 	@Test
 	public void aggregatorREQMODWithGetRequestWithoutChunksAndNullBodySet() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.createREQMODWithGetRequestNoBodyAndEncapsulationHeaderAndNullBodySetIcapMessage());
-		IcapRequest request = (IcapRequest)embedder.poll();
+		embeddedChannel.writeInbound(DataMockery.createREQMODWithGetRequestNoBodyAndEncapsulationHeaderAndNullBodySetIcapMessage());
+		IcapRequest request = readInbound();
 		DataMockery.assertCreateREQMODWithGetRequestNoBody(request);
 	}
-	
+
 	@Test
 	public void aggregatorChunkOnlyTest() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.createRESPMODWithGetRequestAndPreviewIcapChunk());
-		IcapChunk chunk = (IcapChunk)embedder.poll();
+		embeddedChannel.writeInbound(DataMockery.createRESPMODWithGetRequestAndPreviewIcapChunk());
+		IcapChunk chunk = (IcapChunk)readInbound();
 		assertNotNull("no chunk received from pipeline",chunk);
 		DataMockery.assertCreateRESPMODWithGetRequestAndPreviewChunk(chunk);
 	}
-	
+
 	@Test
 	public void aggregatorMessageWithoutBodyFollowedByBodyChunk() {
-		embedder.offer(DataMockery.createREQMODWithGetRequestNoBodyAndEncapsulationHeaderIcapMessage());
-		IcapRequest request = (IcapRequest)embedder.poll();
+		embeddedChannel.writeInbound(DataMockery.createREQMODWithGetRequestNoBodyAndEncapsulationHeaderIcapMessage());
+		IcapRequest request = readInbound();
 		DataMockery.assertCreateREQMODWithGetRequestNoBody(request);
-		embedder.offer(DataMockery.createRESPMODWithGetRequestAndPreviewIcapChunk());
-		IcapChunk chunk = (IcapChunk)embedder.poll();
+		embeddedChannel.writeInbound(DataMockery.createRESPMODWithGetRequestAndPreviewIcapChunk());
+		IcapChunk chunk = (IcapChunk)readInbound();
 		assertNotNull("no chunk received from pipeline",chunk);
 		DataMockery.assertCreateRESPMODWithGetRequestAndPreviewChunk(chunk);
 	}
-	
+
 	@Test
 	public void aggregateREQMODRequestWithChunks() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.createREQMODWithTwoChunkBodyAndEncapsulationHeaderIcapMessage());
-		embedder.offer(DataMockery.createREQMODWithTwoChunkBodyIcapChunkOne());
-		embedder.offer(DataMockery.createREQMODWithTwoChunkBodyIcapChunkTwo());
-		embedder.offer(DataMockery.createREQMODWithTwoChunkBodyIcapChunkThree());
-		IcapRequest request = (IcapRequest)embedder.poll();
+		embeddedChannel.writeInbound(DataMockery.createREQMODWithTwoChunkBodyAndEncapsulationHeaderIcapMessage());
+		embeddedChannel.writeInbound(DataMockery.createREQMODWithTwoChunkBodyIcapChunkOne());
+		embeddedChannel.writeInbound(DataMockery.createREQMODWithTwoChunkBodyIcapChunkTwo());
+		embeddedChannel.writeInbound(DataMockery.createREQMODWithTwoChunkBodyIcapChunkThree());
+		IcapRequest request = readInbound();
 		DataMockery.assertCreateREQMODWithTwoChunkBody(request);
-		String body = request.getHttpRequest().getContent().toString(IcapCodecUtil.ASCII_CHARSET);
+		String body = request.getHttpRequest().content().toString(IcapCodecUtil.ASCII_CHARSET);
 		StringBuilder builder = new StringBuilder();
 		builder.append("This is data that was returned by an origin server.");
 		builder.append("And this the second chunk which contains more information.");
 		assertEquals("The body content was wrong",builder.toString(),body);
-		Object object = embedder.peek();
+		Object object = readInbound();
 		assertNull("still something there",object);
 	}
-	
+
 	@Test
 	public void aggregateRESPMODRequestWithPreviewChunks() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.createRESPMODWithGetRequestAndPreviewIncludingEncapsulationHeaderIcapRequest());
-		embedder.offer(DataMockery.createRESPMODWithGetRequestAndPreviewIcapChunk());
-		embedder.offer(DataMockery.crateRESPMODWithGetRequestAndPreviewLastIcapChunk());
-		IcapRequest request = (IcapRequest)embedder.poll();
+		embeddedChannel.writeInbound(DataMockery.createRESPMODWithGetRequestAndPreviewIncludingEncapsulationHeaderIcapRequest());
+		embeddedChannel.writeInbound(DataMockery.createRESPMODWithGetRequestAndPreviewIcapChunk());
+		embeddedChannel.writeInbound(DataMockery.crateRESPMODWithGetRequestAndPreviewLastIcapChunk());
+		IcapRequest request = readInbound();
 		DataMockery.assertCreateRESPMODWithGetRequestAndPreview(request);
-		String body = request.getHttpResponse().getContent().toString(IcapCodecUtil.ASCII_CHARSET);
+		String body = request.getHttpResponse().content().toString(IcapCodecUtil.ASCII_CHARSET);
 		StringBuilder builder = new StringBuilder();
 		builder.append("This is data that was returned by an origin server.");
 		assertEquals("The body content was wrong",builder.toString(),body);
-		Object object = embedder.peek();
+        Object object = readInbound();
 		assertNull("still something there",object);
 	}
-	
+
 	@Test
 	public void aggregateRESPMODRequestWithPreviewChunksAndReadInBetween() throws UnsupportedEncodingException {
-		DecoderEmbedder<Object> embedder = new DecoderEmbedder<Object>(new IcapChunkAggregator(4012,true));
-		embedder.offer(DataMockery.createRESPMODWithGetRequestAndPreviewIncludingEncapsulationHeaderIcapRequest());
-		embedder.offer(DataMockery.createRESPMODWithGetRequestAndPreviewIcapChunk());
-		embedder.offer(DataMockery.crateRESPMODWithGetRequestAndPreviewLastIcapChunk());
-		IcapRequest request = (IcapRequest)embedder.poll();
+		embeddedChannel = new EmbeddedChannel(new IcapChunkAggregator(4012, true));
+		embeddedChannel.writeInbound(DataMockery.createRESPMODWithGetRequestAndPreviewIncludingEncapsulationHeaderIcapRequest());
+		embeddedChannel.writeInbound(DataMockery.createRESPMODWithGetRequestAndPreviewIcapChunk());
+		embeddedChannel.writeInbound(DataMockery.crateRESPMODWithGetRequestAndPreviewLastIcapChunk());
+		IcapRequest request = readInbound();
 		DataMockery.assertCreateRESPMODWithGetRequestAndPreview(request);
-		ChannelBuffer buffer = request.getHttpResponse().getContent();
+		ByteBuf buffer = request.getHttpResponse().content();
 		Assert.assertEquals("wrong reader index",0,buffer.readerIndex());
 		String body = destructiveRead(buffer);
 		StringBuilder builder = new StringBuilder();
 		builder.append("This is data that was returned by an origin server.");
-		assertEquals("The body content was wrong",builder.toString(),body);	
-		embedder.offer(DataMockery.createRESPMODWithGetRequestAndPreviewIcapChunkFullMessageChunk());
-		embedder.offer(DataMockery.createRESPMODWithGetRequestAndPreviewChunkTrailer());
-		IcapRequest request1 = (IcapRequest)embedder.poll();
-		buffer = request1.getHttpResponse().getContent();
+		assertEquals("The body content was wrong",builder.toString(),body);
+		embeddedChannel.writeInbound(DataMockery.createRESPMODWithGetRequestAndPreviewIcapChunkFullMessageChunk());
+		embeddedChannel.writeInbound(DataMockery.createRESPMODWithGetRequestAndPreviewChunkTrailer());
+		IcapRequest request1 = readInbound();
+		buffer = request1.getHttpResponse().content();
 		Assert.assertEquals("wrong reader index",0,buffer.readerIndex());
 		String body1 = destructiveRead(buffer);
 		assertEquals("The body content after another chunk was sent is wrong","This is data that was returned by an origin server.And this the second chunk which contains more information.",body1);
-		Object object = embedder.peek();
-		assertNull("still something there",object);	
+		Object object = readInbound();
+		assertNull("still something there",object);
 	}
-	
+
 	@Test
 	public void aggregateREQModRequestWithCunksAndTrailingHeaders() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.createREQMODWithTwoChunkBodyAndEncapsulationHeaderIcapMessage());
-		embedder.offer(DataMockery.createREQMODWithTwoChunkBodyIcapChunkOne());
-		embedder.offer(DataMockery.createREQMODWithTwoChunkBodyIcapChunkTwo());
-		embedder.offer(DataMockery.createREQMODWithTwoChunkBodyChunkThreeIcapChunkTrailer());
-		IcapRequest request = (IcapRequest)embedder.poll();
+		embeddedChannel.writeInbound(DataMockery.createREQMODWithTwoChunkBodyAndEncapsulationHeaderIcapMessage());
+		embeddedChannel.writeInbound(DataMockery.createREQMODWithTwoChunkBodyIcapChunkOne());
+		embeddedChannel.writeInbound(DataMockery.createREQMODWithTwoChunkBodyIcapChunkTwo());
+		embeddedChannel.writeInbound(DataMockery.createREQMODWithTwoChunkBodyChunkThreeIcapChunkTrailer());
+		IcapRequest request = readInbound();
 		DataMockery.assertCreateREQMODWithTwoChunkBody(request);
-		assertTrue("Key does not exist [TrailingHeaderKey1]",request.getHttpRequest().containsHeader("TrailingHeaderKey1"));
-		assertEquals("The header: TrailingHeaderKey1 is invalid","TrailingHeaderValue1",request.getHttpRequest().getHeader("TrailingHeaderKey1"));
-		assertTrue("Key does not exist [TrailingHeaderKey2]",request.getHttpRequest().containsHeader("TrailingHeaderKey2"));
-		assertEquals("The header: TrailingHeaderKey2 is invalid","TrailingHeaderValue2",request.getHttpRequest().getHeader("TrailingHeaderKey2"));
-		assertTrue("Key does not exist [TrailingHeaderKey3]",request.getHttpRequest().containsHeader("TrailingHeaderKey3"));
-		assertEquals("The header: TrailingHeaderKey3 is invalid","TrailingHeaderValue3",request.getHttpRequest().getHeader("TrailingHeaderKey3"));
-		assertTrue("Key does not exist [TrailingHeaderKey4]",request.getHttpRequest().containsHeader("TrailingHeaderKey1"));
-		assertEquals("The header: TrailingHeaderKey4 is invalid","TrailingHeaderValue4",request.getHttpRequest().getHeader("TrailingHeaderKey4"));
-		String body = request.getHttpRequest().getContent().toString(IcapCodecUtil.ASCII_CHARSET);
+		assertTrue("Key does not exist [TrailingHeaderKey1]",request.getHttpRequest().headers().contains("TrailingHeaderKey1"));
+		assertEquals("The header: TrailingHeaderKey1 is invalid","TrailingHeaderValue1",request.getHttpRequest().headers().get("TrailingHeaderKey1"));
+		assertTrue("Key does not exist [TrailingHeaderKey2]",request.getHttpRequest().headers().contains("TrailingHeaderKey2"));
+		assertEquals("The header: TrailingHeaderKey2 is invalid","TrailingHeaderValue2",request.getHttpRequest().headers().get("TrailingHeaderKey2"));
+		assertTrue("Key does not exist [TrailingHeaderKey3]",request.getHttpRequest().headers().contains("TrailingHeaderKey3"));
+		assertEquals("The header: TrailingHeaderKey3 is invalid","TrailingHeaderValue3",request.getHttpRequest().headers().get("TrailingHeaderKey3"));
+		assertTrue("Key does not exist [TrailingHeaderKey4]",request.getHttpRequest().headers().contains("TrailingHeaderKey1"));
+		assertEquals("The header: TrailingHeaderKey4 is invalid","TrailingHeaderValue4",request.getHttpRequest().headers().get("TrailingHeaderKey4"));
+		String body = request.getHttpRequest().content().toString(IcapCodecUtil.ASCII_CHARSET);
 		StringBuilder builder = new StringBuilder();
 		builder.append("This is data that was returned by an origin server.");
 		builder.append("And this the second chunk which contains more information.");
 		assertEquals("The body content was wrong",builder.toString(),body);
-		Object object = embedder.peek();
+		Object object = readInbound();
 		assertNull("still something there",object);
 	}
-	
+
 	@Test
 	public void exceedMaximumBodySize() throws UnsupportedEncodingException {
-		DecoderEmbedder<Object> embedder = new DecoderEmbedder<Object>(new IcapChunkAggregator(20));
-		embedder.offer(DataMockery.createREQMODWithTwoChunkBodyAndEncapsulationHeaderIcapMessage());
+		embeddedChannel = new EmbeddedChannel(new IcapChunkAggregator(20));
+		embeddedChannel.writeInbound(DataMockery.createREQMODWithTwoChunkBodyAndEncapsulationHeaderIcapMessage());
 		boolean exception = false;
 		try {
-			embedder.offer(DataMockery.createREQMODWithTwoChunkBodyIcapChunkOne());
+			embeddedChannel.writeInbound(DataMockery.createREQMODWithTwoChunkBodyIcapChunkOne());
 		} catch(RuntimeException rte) {
 			exception = true;
 		}
 		assertTrue("No Exception was thrown",exception);
 	}
-	
+
 	@Test
 	public void retrieveREQMODPreviewWithEarlyTermination() throws UnsupportedEncodingException {
-		embedder.offer(DataMockery.createREQMODWithEarlyTerminatedPreviewAnnouncementIcapMessage());
-		embedder.offer(DataMockery.createREQMODWithEarlyTerminatedPreviewIcapChunk());
-		embedder.offer(DataMockery.createREQMODWithEarlyTerminatedPreviewLastIcapChunk());
-		IcapRequest request = (IcapRequest)embedder.poll();
-		assertFalse("The request is marked to be of type preview",request.isPreviewMessage());
-		
+		embeddedChannel.writeInbound(DataMockery.createREQMODWithEarlyTerminatedPreviewAnnouncementIcapMessage());
+		embeddedChannel.writeInbound(DataMockery.createREQMODWithEarlyTerminatedPreviewIcapChunk());
+		embeddedChannel.writeInbound(DataMockery.createREQMODWithEarlyTerminatedPreviewLastIcapChunk());
+		IcapRequest request = readInbound();
+		assertFalse("The request is marked to be of type preview", request.isPreviewMessage());
 	}
-	
-	private String destructiveRead(ChannelBuffer buffer) {
+
+	private String destructiveRead(ByteBuf buffer) {
 		byte[] data = new byte[buffer.readableBytes()];
 		buffer.readBytes(data);
 		return new String(data,IcapCodecUtil.ASCII_CHARSET);
 	}
+
+	private <T> T readInbound() {
+	    return ReferenceCountUtil.releaseLater((T) embeddedChannel.readInbound());
+	}
+
 }
 

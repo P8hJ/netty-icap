@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,34 +16,22 @@
  ******************************************************************************/
 package ch.mimo.netty.icap.container.osgi;
 
-import org.jboss.netty.logging.InternalLoggerFactory;
-import org.jboss.netty.logging.OsgiLoggerFactory;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
 /**
- * OSGI bundle activator. It will set the osgi logging factory.
+ * OSGI bundle activator.
  * 
  * @author Michael Mimo Moratti (mimo@mimo.ch)
  *
  */
 public class NettyIcapBundleActivator implements BundleActivator {
 
-    private OsgiLoggerFactory loggerFactory;
-
     @Override
     public void start(BundleContext ctx) throws Exception {
-        // Switch the internal logger to the OSGi LogService.
-        loggerFactory = new OsgiLoggerFactory(ctx);
-        InternalLoggerFactory.setDefaultFactory(loggerFactory);
     }
 
     @Override
     public void stop(BundleContext ctx) throws Exception {
-        if (loggerFactory != null) {
-            InternalLoggerFactory.setDefaultFactory(loggerFactory.getFallback());
-            loggerFactory.destroy();
-            loggerFactory = null;
-        }
     }
 }

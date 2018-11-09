@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +16,7 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import org.jboss.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 
 /**
  * ICAP response status enum. contains all valid response codes. like 200, 204 and others.
@@ -88,7 +89,7 @@ public enum IcapResponseStatus {
 		return code;
 	}
 	
-	public void toResponseInitialLineValue(ChannelBuffer buffer) {
+	public void toResponseInitialLineValue(ByteBuf buffer) {
 		buffer.writeBytes(Integer.toString(code).getBytes(IcapCodecUtil.ASCII_CHARSET));
 		buffer.writeByte(IcapCodecUtil.SPACE);
 		buffer.writeBytes(status.getBytes(IcapCodecUtil.ASCII_CHARSET));
