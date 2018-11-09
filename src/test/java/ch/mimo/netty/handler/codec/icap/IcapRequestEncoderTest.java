@@ -21,6 +21,7 @@ import java.nio.charset.Charset;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.util.ReferenceCountUtil;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -38,33 +39,33 @@ public class IcapRequestEncoderTest extends AbstractEncoderTest {
     @Ignore("encoder can not return null in netty 4 anymore")
 	public void testEncoderWithUnknownObject() {
 		embeddedChannel.writeOutbound("");
-		assertNull("poll should return null",embeddedChannel.readOutbound());
+		assertNull("poll should return null",readOutbound());
 	}
 	
 	@Test
 	public void encodeOPTIONSRequest() throws UnsupportedEncodingException {
 		embeddedChannel.writeOutbound(DataMockery.createOPTIONSIcapRequest());
-		String request = getBufferContent(embeddedChannel.readOutbound());
+		String request = getBufferContent(readOutbound());
 		assertResponse(DataMockery.createOPTIONSRequest(),request);
 	}
 	
 	@Test
 	public void encodeOPTIONSRequestWithBody() throws UnsupportedEncodingException {
 		embeddedChannel.writeOutbound(DataMockery.createOPTIONSRequestWithBodyIcapMessage());
-		String request = getBufferContent(embeddedChannel.readOutbound());
+		String request = getBufferContent(readOutbound());
 		assertResponse(DataMockery.createOPTIONSRequestWithBody(),request);
 		embeddedChannel.writeOutbound(DataMockery.createOPTIONSRequestWithBodyBodyChunkIcapChunk());
-		String dataChunk = getBufferContent(embeddedChannel.readOutbound());
+		String dataChunk = getBufferContent(readOutbound());
 		assertResponse(DataMockery.createOPTIONSRequestWithBodyBodyChunk(),dataChunk);
 		embeddedChannel.writeOutbound(DataMockery.createOPTIONSRequestWithBodyLastChunkIcapChunk());
-		String lastChunk = getBufferContent(embeddedChannel.readOutbound());
+		String lastChunk = getBufferContent(readOutbound());
 		assertResponse(DataMockery.createOPTIONSRequestWithBodyLastChunk(),lastChunk);
 	}
 	
 	@Test
 	public void encodeREQMODRequestWithoutBody() throws UnsupportedEncodingException {
 		embeddedChannel.writeOutbound(DataMockery.createREQMODWithGetRequestNoBodyIcapMessage());
-		String request = getBufferContent(embeddedChannel.readOutbound());
+		String request = getBufferContent(readOutbound());
 		doOutput(request);
 		assertResponse(DataMockery.createREQMODWithGetRequestNoBody(),request);
 	}
@@ -72,7 +73,7 @@ public class IcapRequestEncoderTest extends AbstractEncoderTest {
 	@Test
 	public void encodeRESMODWithGetRequestNoBody() throws UnsupportedEncodingException {
 		embeddedChannel.writeOutbound(DataMockery.createRESPMODWithGetRequestNoBodyIcapMessage());
-		String request = getBufferContent(embeddedChannel.readOutbound());
+		String request = getBufferContent(readOutbound());
 		doOutput(request);
 		assertResponse(DataMockery.createRESPMODWithGetRequestNoBody(),request);
 	}
@@ -80,59 +81,59 @@ public class IcapRequestEncoderTest extends AbstractEncoderTest {
 	@Test
 	public void encodeREQMODWithTwoChunkBody() throws UnsupportedEncodingException {
 		embeddedChannel.writeOutbound(DataMockery.createREQMODWithTwoChunkBodyIcapMessage());
-		String request = getBufferContent(embeddedChannel.readOutbound());
+		String request = getBufferContent(readOutbound());
 		assertResponse(DataMockery.createREQMODWithTwoChunkBodyAnnouncement(),request);
 		embeddedChannel.writeOutbound(DataMockery.createREQMODWithTwoChunkBodyIcapChunkOne());
-		String chunkOne = getBufferContent(embeddedChannel.readOutbound());
+		String chunkOne = getBufferContent(readOutbound());
 		assertResponse(DataMockery.createREQMODWithTowChunkBodyChunkOne(),chunkOne);
 		embeddedChannel.writeOutbound(DataMockery.createREQMODWithTwoChunkBodyIcapChunkTwo());
-		String chunkTwo = getBufferContent(embeddedChannel.readOutbound());
+		String chunkTwo = getBufferContent(readOutbound());
 		assertResponse(DataMockery.createREQMODWithTwoChunkBodyChunkTwo(),chunkTwo);
 		embeddedChannel.writeOutbound(DataMockery.createREQMODWithTwoChunkBodyIcapChunkThree());
-		String chunkThree = getBufferContent(embeddedChannel.readOutbound());
+		String chunkThree = getBufferContent(readOutbound());
 		assertResponse(DataMockery.createREQMODWithTwoChunkBodyChunkThree(),chunkThree);
 	}
 	
 	@Test
 	public void encodeREQModWithTowChunkBodyAndTrailingHeader() throws UnsupportedEncodingException {
 		embeddedChannel.writeOutbound(DataMockery.createREQMODWithTwoChunkBodyIcapMessage());
-		String request = getBufferContent(embeddedChannel.readOutbound());
+		String request = getBufferContent(readOutbound());
 		assertResponse(DataMockery.createREQMODWithTwoChunkBodyAnnouncement(),request);
 		embeddedChannel.writeOutbound(DataMockery.createREQMODWithTwoChunkBodyIcapChunkOne());
-		String chunkOne = getBufferContent(embeddedChannel.readOutbound());
+		String chunkOne = getBufferContent(readOutbound());
 		assertResponse(DataMockery.createREQMODWithTowChunkBodyChunkOne(),chunkOne);
 		embeddedChannel.writeOutbound(DataMockery.createREQMODWithTwoChunkBodyIcapChunkTwo());
-		String chunkTwo = getBufferContent(embeddedChannel.readOutbound());
+		String chunkTwo = getBufferContent(readOutbound());
 		assertResponse(DataMockery.createREQMODWithTwoChunkBodyChunkTwo(),chunkTwo);
 		embeddedChannel.writeOutbound(DataMockery.createREQMODWithTwoChunkBodyChunkThreeIcapChunkTrailer());
-		String chunkThree = getBufferContent(embeddedChannel.readOutbound());
+		String chunkThree = getBufferContent(readOutbound());
 		assertResponse(DataMockery.createREQMODWithTwoChunkBodyChunkThreeWithTrailer(),chunkThree);
 	}
 	
 	@Test
 	public void encodeREQMODWithPreview() throws UnsupportedEncodingException {
 		embeddedChannel.writeOutbound(DataMockery.createREQMODWithPreviewAnnouncementIcapMessage());
-		String request = getBufferContent(embeddedChannel.readOutbound());
+		String request = getBufferContent(readOutbound());
 		assertResponse(DataMockery.createREQMODWithPreviewAnnouncement(),request);
 		embeddedChannel.writeOutbound(DataMockery.createREQMODWithPreviewIcapChunk());
-		String previewChunk = getBufferContent(embeddedChannel.readOutbound());
+		String previewChunk = getBufferContent(readOutbound());
 		assertResponse(DataMockery.createREQMODWithPreviewChunk(),previewChunk);
 		embeddedChannel.writeOutbound(DataMockery.createREQMODWithPreviewLastIcapChunk());
-		String lastChunk = getBufferContent(embeddedChannel.readOutbound());
+		String lastChunk = getBufferContent(readOutbound());
 		assertResponse(DataMockery.createREQMODWithPreviewLastChunk(),lastChunk);
 	}
 	
 	@Test
 	public void encodeREQMODWithEarlyTerminatedPreview() throws UnsupportedEncodingException {
 		embeddedChannel.writeOutbound(DataMockery.createREQMODWithEarlyTerminatedPreviewAnnouncementIcapMessage());
-		String request = getBufferContent(embeddedChannel.readOutbound());
+		String request = getBufferContent(readOutbound());
 		assertResponse(DataMockery.createREQMODWithEarlyTerminatedPreviewAnnouncement(),request);
 		
 		embeddedChannel.writeOutbound(DataMockery.createREQMODWithEarlyTerminatedPreviewIcapChunk());
-		String previewChunk = getBufferContent(embeddedChannel.readOutbound());
+		String previewChunk = getBufferContent(readOutbound());
 		assertResponse(DataMockery.createREQMODWithEarlyTerminatedPreviewChunk(),previewChunk);
 		embeddedChannel.writeOutbound(DataMockery.createREQMODWithEarlyTerminatedPreviewLastIcapChunk());
-		String lastChunk = getBufferContent(embeddedChannel.readOutbound());
+		String lastChunk = getBufferContent(readOutbound());
 		assertResponse(DataMockery.createREQMODWithEarlyTerminatedPreviewLastChunk(),lastChunk);
 	}
 	
@@ -140,7 +141,11 @@ public class IcapRequestEncoderTest extends AbstractEncoderTest {
 	public void createOPTIONSRequestProgramaticallyAndEncodeItToValidateEncapsulationHeaderExistence() {
 		IcapRequest request = new DefaultIcapRequest(IcapVersion.ICAP_1_0,IcapMethod.OPTIONS,"/foo/bar","icap.server.com");
 		embeddedChannel.writeOutbound(request);
-		ByteBuf buffer = embeddedChannel.readOutbound();
+		ByteBuf buffer = readOutbound();
 		assertTrue("No Encapsulated header found",buffer.toString(Charset.defaultCharset()).indexOf("Encapsulated") > 0);
+	}
+
+	private <T> T readOutbound() {
+		return ReferenceCountUtil.releaseLater((T)embeddedChannel.readOutbound());
 	}
 }

@@ -29,7 +29,7 @@ public class DefaultIcapResponse extends AbstractIcapMessage implements IcapResp
 	private IcapResponseStatus status;
 	private ByteBuf optionsContent;
 	private Integer useOriginalBodyOffset;
-	
+
 	/**
 	 * Will create an instance of IcapResponse.
 	 * 
@@ -72,5 +72,57 @@ public class DefaultIcapResponse extends AbstractIcapMessage implements IcapResp
 	@Override
 	public Integer getUseOriginalBody() {
 		return useOriginalBodyOffset;
+	}
+
+	@Override
+	public boolean release() {
+		if (optionsContent != null) {
+			optionsContent.release();
+		}
+		return super.release();
+	}
+
+	@Override
+	public boolean release(int decrement) {
+		if (optionsContent != null) {
+			optionsContent.release(decrement);
+		}
+		return super.release(decrement);
+	}
+
+	@Override
+	public DefaultIcapResponse retain() {
+		super.retain();
+		if (optionsContent != null) {
+			optionsContent.retain();
+		}
+		return this;
+	}
+
+	@Override
+	public DefaultIcapResponse retain(int increment) {
+		super.retain(increment);
+		if (optionsContent != null) {
+			optionsContent.retain(increment);
+		}
+		return this;
+	}
+
+	@Override
+	public DefaultIcapResponse touch() {
+		super.touch();
+		if (optionsContent != null) {
+			optionsContent.touch();
+		}
+		return this;
+	}
+
+	@Override
+	public DefaultIcapResponse touch(Object hint) {
+		super.touch(hint);
+		if (optionsContent != null) {
+			optionsContent.touch();
+		}
+		return this;
 	}
 }
