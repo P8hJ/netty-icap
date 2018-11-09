@@ -65,7 +65,7 @@ public class DefaultIcapResponse extends AbstractIcapMessage implements IcapResp
 	}
 
 	@Override
-	public void setUseOriginalBody(int offset) {
+	public void setUseOriginalBody(Integer offset) {
 		useOriginalBodyOffset = offset;
 	}
 

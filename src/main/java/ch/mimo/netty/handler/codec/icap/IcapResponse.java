@@ -53,7 +53,7 @@ public interface IcapResponse extends IcapMessage {
 	 */
 	ByteBuf getContent();
 
-	void setUseOriginalBody(int offset);
+	void setUseOriginalBody(Integer offset);
 
 	Integer getUseOriginalBody();
 }
