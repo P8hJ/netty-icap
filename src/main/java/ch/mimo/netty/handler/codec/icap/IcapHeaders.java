@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +19,10 @@ package ch.mimo.netty.handler.codec.icap;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -32,10 +36,9 @@ import java.util.Set;
  *
  */
 public final class IcapHeaders {
-	
-	private Entry base;
-	private Entry head;
-	
+
+	private final List<Entry> entries = new LinkedList<Entry>();
+
 	private static final String DATE_FORMAT = "E, dd MMM yyyy HH:mm:ss z";
 	
 	/**
@@ -161,8 +164,7 @@ public final class IcapHeaders {
 	}
 	
 	public void clearHeaders() {
-		base = null;
-		head = null;
+		entries.clear();
 	}
 	
 	/**
@@ -174,16 +176,7 @@ public final class IcapHeaders {
 	 * @param value Icap message header value. Can also be null
 	 */
 	public void addHeader(String name, Object value) {
-		Entry entry = new Entry(name,value);
-		if(base == null) {
-			base = entry;
-			head = entry;
-		} else {
-			Entry currentHead = head;
-			head = entry;
-			entry.before = currentHead;
-			currentHead.after = entry;
-		}
+		entries.add(new Entry(name, value));
 	}
 	
 	public void addDateHeader(String name, Date value) {
@@ -228,12 +221,10 @@ public final class IcapHeaders {
 	 * @return String value or null
 	 */
 	public String getHeader(String name) {
-		Entry entry = base;
-		while(entry != null) {
-			if(identicalKeys(entry.getKey(),name)) {
+		for(Entry entry : entries) {
+			if(identicalKeys(entry.getKey(), name)) {
 				return entry.getValue();
 			}
-			entry = entry.after;
 		}
 		return null;
 	}
@@ -270,12 +261,10 @@ public final class IcapHeaders {
 	 */
 	public Set<String> getHeaders(String name) {
 		Set<String> values = new LinkedHashSet<String>();
-		Entry entry = base;
-		while(entry != null) {
+		for(Entry entry : entries) {
 			if(identicalKeys(entry.getKey(),name)) {
 				values.add(entry.getValue());
 			}
-			entry = entry.after;
 		}
 		return values;
 	}
@@ -287,10 +276,8 @@ public final class IcapHeaders {
 	 */
 	public Set<Map.Entry<String, String>> getHeaders() {
 		Set<Map.Entry<String, String>> headers = new LinkedHashSet<Map.Entry<String,String>>();
-		Entry entry = base;
-		while(entry != null) {
+		for(Entry entry : entries) {
 			headers.add(entry);
-			entry = entry.after;
 		}
 		return headers;
 	}
@@ -311,41 +298,12 @@ public final class IcapHeaders {
 	 * @param name Icap message header name
 	 */
 	public void removeHeader(String name) {
-		if(base == null) {
-			return;
-		}
-		Entry entry = null;
-		if(base.after == null) {
-			if(identicalKeys(base.getKey(),name)) {
-				base = null;
-				return;
+		Iterator<Entry> i = entries.iterator();
+		while(i.hasNext()) {
+			Entry entry = i.next();
+			if (identicalKeys(entry.getKey(), name)) {
+				i.remove();
 			}
-		} else {
-			entry = base.after;
-		}
-		while(entry != null) {
-			if(identicalKeys(entry.getKey(),name)) {
-				Entry before = entry.before;
-				Entry after = entry.after;
-				if(before != null) {
-					before.after = after;
-				}
-				if(after != null) {
-					after.before = before;
-					entry = after;
-				} else {
-					if (head == entry) {
-						head = entry.before;
-					}
-					entry = null;
-				}
-			} else {
-				entry = entry.after;
-			}
-		}
-		if(identicalKeys(base.getKey(),name)) {
-			base = base.after;
-			base.before = null;
 		}
 	}
 	
@@ -357,10 +315,8 @@ public final class IcapHeaders {
 	 */
 	public Set<String> getHeaderNames() {
 		Set<String> names = new LinkedHashSet<String>();
-		Entry entry = base;
-		while(entry != null) {
+		for(Entry entry : entries) {
 			names.add(entry.getKey());
-			entry = entry.after;
 		}
 		return names;
 	}
@@ -396,9 +352,7 @@ public final class IcapHeaders {
 		
 		private String key;
 		private String value;
-		
-		private Entry before, after;
-		
+
 		Entry(String key, Object value) {
 			IcapCodecUtil.validateHeaderName(key);
 			this.key = key;
