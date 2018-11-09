@@ -24,6 +24,7 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
+import io.netty.util.ReferenceCounted;
 
 /**
  * An ICAP message that contains common operations for @see {@link IcapRequest} and @see {@link IcapResponse}.
@@ -31,7 +32,7 @@ import io.netty.handler.codec.http.HttpResponse;
  * @author Michael Mimo Moratti (mimo@mimo.ch)
  *
  */
-public interface IcapMessage {
+public interface IcapMessage extends ReferenceCounted {
 
     /**
      * Returns the header value with the specified header name.  If there are

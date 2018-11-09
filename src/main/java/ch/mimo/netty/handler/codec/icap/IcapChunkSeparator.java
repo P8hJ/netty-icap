@@ -17,6 +17,7 @@
 package ch.mimo.netty.handler.codec.icap;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
@@ -35,6 +36,7 @@ import io.netty.util.internal.logging.InternalLoggerFactory;
  * @author Michael Mimo Moratti (mimo@mimo.ch)
  *
  */
+@ChannelHandler.Sharable
 public class IcapChunkSeparator extends ChannelOutboundHandlerAdapter {
 
 	private static final InternalLogger LOG = InternalLoggerFactory.getInstance(IcapChunkSeparator.class);
@@ -54,6 +56,9 @@ public class IcapChunkSeparator extends ChannelOutboundHandlerAdapter {
 			LOG.debug("Separation of message [" + msg.getClass().getName() + "] ");
 			IcapMessage message = (IcapMessage)msg;
 			ByteBuf content = extractContentFromMessage(message);
+			if (content != null) {
+				content.retain();
+			}
 			ctx.write(message);
 			if(content != null) {
 				boolean isPreview = message.isPreviewMessage();
@@ -64,9 +69,9 @@ public class IcapChunkSeparator extends ChannelOutboundHandlerAdapter {
 				while(content.readableBytes() > 0) {
 					IcapChunk chunk;
 					if(content.readableBytes() > chunkSize) {
-						chunk = new DefaultIcapChunk(content.readBytes(chunkSize));
+						chunk = new DefaultIcapChunk(content.readRetainedSlice(chunkSize));
 					} else {
-						chunk = new DefaultIcapChunk(content.readBytes(content.readableBytes()));
+						chunk = new DefaultIcapChunk(content.readRetainedSlice(content.readableBytes()));
 					}
 					chunk.setPreviewChunk(isPreview);
 					chunk.setEarlyTermination(isEarlyTerminated);
@@ -78,6 +83,7 @@ public class IcapChunkSeparator extends ChannelOutboundHandlerAdapter {
 						ctx.write(trailer);
 					}
 				}
+				content.release();
 			}
 			ctx.flush();
 		} else {
