@@ -190,21 +190,13 @@ public class IcapChunkAggregator extends ChannelInboundHandlerAdapter {
 	    		} else if(message instanceof IcapResponse && message.getBodyType().equals(IcapMessageElementEnum.OPTBODY)) {
 	    			icapResponse = (IcapResponse)message;
 	    			messageWithBody = true;
+					if (icapResponse.getContent() == null || icapResponse.getContent().readableBytes() <= 0) {
+						icapResponse.setContent(allocator.buffer());
+					}
 				}
 			}
-			if (messageWithBody) {
-				if (relevantHttpMessage != null) {
-					if (relevantHttpMessage.content() == null || relevantHttpMessage.content().readableBytes() <= 0) {
-						relevantHttpMessage.replace(allocator.buffer());
-					}
-				} else if (icapResponse != null) {
-    				if(icapResponse.getContent() == null || icapResponse.getContent().readableBytes() <= 0) {
-	    				icapResponse.setContent(allocator.buffer());
-    				}
-				}
-				previewMessage = true;
-    			}
-    		}
+			previewMessage = messageWithBody;
+		}
 
         public void sendToHandler(ChannelHandlerContext ctx) {
             if (!previewMessage) message.removeHeader(IcapHeaders.Names.PREVIEW);
