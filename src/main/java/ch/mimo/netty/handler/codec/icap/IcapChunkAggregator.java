@@ -106,9 +106,8 @@ public class IcapChunkAggregator extends ChannelInboundHandlerAdapter {
     		IcapMessage currentMessage = (IcapMessage)msg;
     		message = new IcapMessageWrapper(ctx.alloc(), currentMessage);
     		if(!message.hasBody()) {
-                LOG.debug("message has no body, removing PREVIEW header");
-                message.clearPreview();
-                message.sendToHandler(ctx);
+                message.getIcapMessage().removeHeader(IcapHeaders.Names.PREVIEW);
+                ctx.fireChannelRead(message.getIcapMessage());
     			message = null;
     			return;
     		}
@@ -120,14 +119,14 @@ public class IcapChunkAggregator extends ChannelInboundHandlerAdapter {
     			IcapChunkTrailer trailer = (IcapChunkTrailer)msg;
                 if (trailer.isEarlyTerminated()) {
                     LOG.debug("chunk trailer is early terminated, removing PREVIEW header");
-                    message.clearPreview();
-    				}
+                    message.getIcapMessage().removeHeader(IcapHeaders.Names.PREVIEW);
+                }
                 if (trailer.trailingHeaders().size() > 0) {
                     for (String name : trailer.trailingHeaders().names()) {
                         message.addHeader(name, trailer.trailingHeaders().get(name));
                     }
                 }
-                message.sendToHandler(ctx);
+                ctx.fireChannelRead(message.getIcapMessage());
     		}
     	} else if(msg instanceof IcapChunk) {
     		LOG.debug("Aggregation of chunk [" + msg.getClass().getName() + "] ");
@@ -137,9 +136,9 @@ public class IcapChunkAggregator extends ChannelInboundHandlerAdapter {
     		} else if(chunk.isLast()) {
     			if(chunk.isEarlyTerminated()) {
                     LOG.debug("chunk is early terminated, removing PREVIEW header");
-                    message.clearPreview();
+                    message.getIcapMessage().removeHeader(IcapHeaders.Names.PREVIEW);
     			}
-                message.sendToHandler(ctx);
+                ctx.fireChannelRead(message.getIcapMessage());
     			message = null;
     		} else {
 				try {
@@ -170,7 +169,6 @@ public class IcapChunkAggregator extends ChannelInboundHandlerAdapter {
     	private FullHttpMessage relevantHttpMessage;
     	private IcapResponse icapResponse;
     	private boolean messageWithBody;
-        private boolean previewMessage;
 
     	public IcapMessageWrapper(ByteBufAllocator allocator, IcapMessage message) {
     		this.message = message;
@@ -195,19 +193,7 @@ public class IcapChunkAggregator extends ChannelInboundHandlerAdapter {
 					}
 				}
 			}
-			previewMessage = messageWithBody;
 		}
-
-        public void sendToHandler(ChannelHandlerContext ctx) {
-            if (!previewMessage) message.removeHeader(IcapHeaders.Names.PREVIEW);
-            ctx.fireChannelRead(message);
-            previewMessage = false;
-        }
-
-        public void clearPreview() {
-            message.removeHeader(IcapHeaders.Names.PREVIEW);
-            previewMessage = false;
-    	}
     	
     	public boolean hasBody() {
     		return messageWithBody;
