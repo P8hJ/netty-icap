@@ -52,4 +52,8 @@ public interface IcapResponse extends IcapMessage {
 	 * @return @see {@link ByteBuf} or null
 	 */
 	ByteBuf getContent();
+
+	void setUseOriginalBody(Integer offset);
+
+	Integer getUseOriginalBody();
 }

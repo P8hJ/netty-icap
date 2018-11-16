@@ -132,7 +132,58 @@ public class IcapChunkSeparatorTest extends AbstractIcapTest {
 		assertTrue("trailer is not marked as preview",trailer.isPreviewChunk());
 		assertTrue("trailer is not marked as early terminated",trailer.isEarlyTerminated());
 	}
-	
+
+	@Test
+	public void separateREQMODWithPartialContentUsingCompleteOriginalBody() {
+		embeddedChannel.writeOutbound(DataMockery.createREQMODWithPartialContentUsingCompleteOriginalBodyIcapResponse());
+		IcapMessage message = readOutbound();
+		assertNotNull("message was null", message);
+		assertEquals("message body indicator is wrong", IcapMessageElementEnum.REQBODY, message.getBodyType());
+		IcapChunkTrailer trailer = readOutbound();
+		assertNotNull("chunk trailer was null", trailer);
+		assertFalse("trailer is marked as preview", trailer.isPreviewChunk());
+		assertFalse("trailer is marked as early terminated", trailer.isEarlyTerminated());
+		assertEquals("trailer misses or has erroneous use-original-body extension", Integer.valueOf(0), trailer.getUseOriginalBody());
+	}
+
+	@Test
+	public void separateREQMODWithPartialContentUsingModifiedOriginalBody() {
+		embeddedChannel.writeOutbound(DataMockery.createREQMODWithPartialContentUsingModifiedOriginalBodyIcapResponse());
+		IcapMessage message = readOutbound();
+		assertNotNull("message was null", message);
+		assertEquals("message body indicator is wrong", IcapMessageElementEnum.REQBODY, message.getBodyType());
+		IcapChunk chunk1 = readOutbound();
+		assertNotNull("chunk 1 was null", chunk1);
+		assertEquals("chunk 1 content is wrong", "This replaces the fi", chunk1.content().toString(IcapCodecUtil.ASCII_CHARSET));
+		IcapChunk chunk2 = readOutbound();
+		assertNotNull("chunk 2 was null", chunk2);
+		assertEquals("chunk 2 content is wrong", "rst five bytes of th", chunk2.content().toString(IcapCodecUtil.ASCII_CHARSET));
+		IcapChunk chunk3 = readOutbound();
+		assertNotNull("chunk 3 was null", chunk3);
+		assertEquals("chunk 3 content is wrong", "e original content.", chunk3.content().toString(IcapCodecUtil.ASCII_CHARSET));
+		IcapChunkTrailer trailer = readOutbound();
+		assertNotNull("chunk trailer was null", trailer);
+		assertFalse("trailer is marked as preview", trailer.isPreviewChunk());
+		assertFalse("trailer is marked as early terminated", trailer.isEarlyTerminated());
+		assertEquals("trailer misses or has erroneous use-original-body extension", Integer.valueOf(5), trailer.getUseOriginalBody());
+	}
+
+	@Test
+	public void separateREQMODWithPartialContentReplacingOriginalBody() {
+		embeddedChannel.writeOutbound(DataMockery.createREQMODWithPartialContentReplacingOriginalBody());
+		IcapMessage message = readOutbound();
+		assertNotNull("message was null", message);
+		assertEquals("message body indicator is wrong", IcapMessageElementEnum.REQBODY, message.getBodyType());
+		IcapChunk chunk1 = readOutbound();
+		assertNotNull("chunk 1 was null", chunk1);
+		assertEquals("chunk 1 content is wrong", "Content replacement", chunk1.content().toString(IcapCodecUtil.ASCII_CHARSET));
+		IcapChunkTrailer trailer = readOutbound();
+		assertNotNull("chunk trailer was null", trailer);
+		assertFalse("trailer is marked as preview", trailer.isPreviewChunk());
+		assertFalse("trailer is marked as early terminated", trailer.isEarlyTerminated());
+		assertNull("trailer has use-original-body extension", trailer.getUseOriginalBody());
+	}
+
 	@Test
 	public void separateOPTIONSResponseWithBody() {
 		embeddedChannel.writeOutbound(DataMockery.createOPTIONSResponseWithBodyInIcapResponse());

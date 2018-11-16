@@ -368,7 +368,7 @@ public final class DataMockery extends Assert {
 		IcapResponse response = new DefaultIcapResponse(IcapVersion.ICAP_1_0,IcapResponseStatus.OK);
 		response.addHeader("Host","icap-server.net");
 		response.addHeader("ISTag","Serial-0815");
-		FullHttpResponse httpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,HttpResponseStatus.OK);
+		FullHttpResponse httpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
 		response.setHttpResponse(httpResponse);
 		httpResponse.headers().add("Host","www.origin-server.com");
 		httpResponse.headers().add("Accept","text/html, text/plain");
@@ -1341,6 +1341,176 @@ public final class DataMockery extends Assert {
 		httpResponse.headers().add("Content-Length","151");
 		return request;
 	}
+
+	public static final IcapResponse createREQMODWithPartialContentUsingCompleteOriginalBodyIcapResponse() {
+		IcapResponse response = new DefaultIcapResponse(IcapVersion.ICAP_1_0, IcapResponseStatus.PARTIAL_CONTENT);
+		response.addHeader("Host","icap-server.net");
+		response.addHeader("ISTag","Serial-0815");
+		response.setBody(IcapMessageElementEnum.REQBODY);
+		response.setUseOriginalBody(0);
+		FullHttpRequest httpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET,"/", Unpooled.EMPTY_BUFFER);
+		response.setHttpRequest(httpRequest);
+		httpRequest.headers().add("Host","www.origin-server.com");
+		httpRequest.headers().add("Accept","text/html, text/plain");
+		httpRequest.headers().add("Accept-Encoding","compress");
+		httpRequest.headers().add("Cookie","ff39fk3jur@4ii0e02i");
+		httpRequest.headers().add("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
+		return response;
+	}
+
+	public static final ByteBuf createREQMODWithPartialContentUsingCompleteOriginalBodyEncodedResponse() throws UnsupportedEncodingException {
+		ByteBuf buffer = Unpooled.buffer();
+		addLine(buffer, "ICAP/1.0 206 Partial Content");
+		addLine(buffer, "Host: icap-server.net");
+		addLine(buffer, "ISTag: Serial-0815");
+		addLine(buffer, "Encapsulated: req-hdr=0, req-body=170");
+		addLine(buffer, "");
+		addLine(buffer, "GET / HTTP/1.1");
+		addLine(buffer, "Host: www.origin-server.com");
+		addLine(buffer, "Accept: text/html, text/plain");
+		addLine(buffer, "Accept-Encoding: compress");
+		addLine(buffer, "Cookie: ff39fk3jur@4ii0e02i");
+		addLine(buffer, "If-None-Match: \"xyzzy\", \"r2d2xxxx\"");
+		addLine(buffer, null);
+		return buffer;
+	}
+
+	public static final IcapChunkTrailer createREQMODWithPartialContentUsingOriginalBodyIcapChunkTrailer(int offset) {
+		DefaultIcapChunkTrailer trailer = new DefaultIcapChunkTrailer(false, false);
+		trailer.setUseOriginalBody(offset);
+		return trailer;
+	}
+
+	public static final ByteBuf createREQMODWithPartialContentUsingOriginalBodyTrailerEncodedChunkTrailer(int offset) throws UnsupportedEncodingException {
+		ByteBuf buffer = Unpooled.buffer();
+		addLine(buffer, "0;use-original-body=" + offset);
+		addLine(buffer, null);
+		return buffer;
+	}
+
+	public static final IcapResponse createREQMODWithPartialContentUsingModifiedOriginalBodyIcapResponse() {
+		IcapResponse response = new DefaultIcapResponse(IcapVersion.ICAP_1_0, IcapResponseStatus.PARTIAL_CONTENT);
+		response.addHeader("Host","icap-server.net");
+		response.addHeader("ISTag","Serial-0815");
+		response.setBody(IcapMessageElementEnum.REQBODY);
+		response.setUseOriginalBody(5);
+		ByteBuf buffer = Unpooled.buffer();
+		buffer.writeBytes("This replaces the first five bytes of the original content.".getBytes(IcapCodecUtil.ASCII_CHARSET));
+		FullHttpRequest httpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/", buffer);
+		response.setHttpRequest(httpRequest);
+		httpRequest.headers().add("Host","www.origin-server.com");
+		httpRequest.headers().add("Accept","text/html, text/plain");
+		httpRequest.headers().add("Accept-Encoding","compress");
+		httpRequest.headers().add("Cookie","ff39fk3jur@4ii0e02i");
+		httpRequest.headers().add("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
+		return response;
+	}
+
+	public static final ByteBuf createREQMODWithPartialContentUsingModifiedOriginalBodyEncodedResponse() throws UnsupportedEncodingException {
+		ByteBuf buffer = Unpooled.buffer();
+		addLine(buffer, "ICAP/1.0 206 Partial Content");
+		addLine(buffer, "Host: icap-server.net");
+		addLine(buffer, "ISTag: Serial-0815");
+		addLine(buffer, "Encapsulated: req-hdr=0, req-body=170");
+		addLine(buffer, "");
+		addLine(buffer, "GET / HTTP/1.1");
+		addLine(buffer, "Host: www.origin-server.com");
+		addLine(buffer, "Accept: text/html, text/plain");
+		addLine(buffer, "Accept-Encoding: compress");
+		addLine(buffer, "Cookie: ff39fk3jur@4ii0e02i");
+		addLine(buffer, "If-None-Match: \"xyzzy\", \"r2d2xxxx\"");
+		addLine(buffer, null);
+		return buffer;
+	}
+
+	public static final IcapChunk createREQMODWithPartialContentUsingModifiedOriginalBodyIcapChunk() {
+		ByteBuf buffer = Unpooled.buffer();
+		buffer.writeBytes("This replaces the first five bytes of the original content.".getBytes(IcapCodecUtil.ASCII_CHARSET));
+		return new DefaultIcapChunk(buffer);
+	}
+
+	public static final ByteBuf createREQMODWithPartialContentUsingModifiedOriginalBodyEncodedChunk() throws UnsupportedEncodingException {
+		ByteBuf buffer = Unpooled.buffer();
+		addLine(buffer, "3b");
+		addLine(buffer, "This replaces the first five bytes of the original content.");
+		return buffer;
+	}
+
+    public static final IcapResponse createREQMODWithPartialContentReplacingOriginalBodyIcapResponse() {
+        IcapResponse response = new DefaultIcapResponse(IcapVersion.ICAP_1_0, IcapResponseStatus.PARTIAL_CONTENT);
+        response.addHeader("Host","icap-server.net");
+        response.addHeader("ISTag","Serial-0815");
+        response.setBody(IcapMessageElementEnum.REQBODY);
+        ByteBuf buffer = Unpooled.buffer();
+        buffer.writeBytes("This replaces the first five bytes of the original content.".getBytes(IcapCodecUtil.ASCII_CHARSET));
+        FullHttpRequest httpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/", buffer);
+        response.setHttpRequest(httpRequest);
+        httpRequest.headers().add("Host","www.origin-server.com");
+        httpRequest.headers().add("Accept","text/html, text/plain");
+        httpRequest.headers().add("Accept-Encoding","compress");
+        httpRequest.headers().add("Cookie","ff39fk3jur@4ii0e02i");
+        httpRequest.headers().add("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
+        return response;
+    }
+
+    public static final ByteBuf createREQMODWithPartialContentReplacingOriginalBodyEncodedResponse() throws UnsupportedEncodingException {
+        ByteBuf buffer = Unpooled.buffer();
+        addLine(buffer, "ICAP/1.0 206 Partial Content");
+        addLine(buffer, "Host: icap-server.net");
+        addLine(buffer, "ISTag: Serial-0815");
+        addLine(buffer, "Encapsulated: req-hdr=0, req-body=170");
+        addLine(buffer, "");
+        addLine(buffer, "GET / HTTP/1.1");
+        addLine(buffer, "Host: www.origin-server.com");
+        addLine(buffer, "Accept: text/html, text/plain");
+        addLine(buffer, "Accept-Encoding: compress");
+        addLine(buffer, "Cookie: ff39fk3jur@4ii0e02i");
+        addLine(buffer, "If-None-Match: \"xyzzy\", \"r2d2xxxx\"");
+        addLine(buffer, null);
+        return buffer;
+    }
+
+    public static final IcapChunk createREQMODWithPartialContentReplacingOriginalBodyIcapChunk() {
+        ByteBuf buffer = Unpooled.buffer();
+        buffer.writeBytes("This replaces the original content.".getBytes(IcapCodecUtil.ASCII_CHARSET));
+        return new DefaultIcapChunk(buffer);
+    }
+
+    public static final ByteBuf createREQMODWithPartialContentReplacingOriginalBodyEncodedChunk() throws UnsupportedEncodingException {
+        ByteBuf buffer = Unpooled.buffer();
+        addLine(buffer, "23");
+        addLine(buffer, "This replaces the original content.");
+        return buffer;
+    }
+
+	public static final IcapResponse createREQMODWithPartialContentReplacingOriginalBody() {
+		IcapResponse response = new DefaultIcapResponse(IcapVersion.ICAP_1_0, IcapResponseStatus.PARTIAL_CONTENT);
+		response.addHeader("Host","icap-server.net");
+		response.addHeader("ISTag","Serial-0815");
+		response.setUseOriginalBody(null);
+		ByteBuf buffer = Unpooled.buffer();
+		buffer.writeBytes("Content replacement".getBytes(IcapCodecUtil.ASCII_CHARSET));
+		FullHttpRequest httpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/", buffer);
+		response.setHttpRequest(httpRequest);
+		httpRequest.headers().add("Host","www.origin-server.com");
+		httpRequest.headers().add("Accept","text/html, text/plain");
+		httpRequest.headers().add("Accept-Encoding","compress");
+		httpRequest.headers().add("Cookie","ff39fk3jur@4ii0e02i");
+		httpRequest.headers().add("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
+		return response;
+	}
+
+    public static final IcapChunkTrailer createREQMODWithPartialContentReplacingOriginalBodyIcapChunkTrailer() {
+        DefaultIcapChunkTrailer trailer = new DefaultIcapChunkTrailer(false, false);
+        return trailer;
+    }
+
+    public static final ByteBuf createREQMODWithPartialContentReplacingOriginalBodyTrailerEncodedChunkTrailer() throws UnsupportedEncodingException {
+        ByteBuf buffer = Unpooled.buffer();
+        addLine(buffer, "0");
+        addLine(buffer, null);
+        return buffer;
+    }
 	
 	public static final IcapResponse createOPTIONSResponseWithBodyInIcapResponse() {
 		IcapResponse response = new DefaultIcapResponse(IcapVersion.ICAP_1_0,IcapResponseStatus.OK);

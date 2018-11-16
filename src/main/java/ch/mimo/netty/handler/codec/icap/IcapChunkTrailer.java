@@ -29,4 +29,8 @@ public interface IcapChunkTrailer extends IcapChunk {
     HttpHeaders trailingHeaders();
 
     boolean isLast();
+
+    void setUseOriginalBody(Integer offset);
+
+    Integer getUseOriginalBody();
 }

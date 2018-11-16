@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
  * Modifications Copyright (c) 2018 eBlocker GmbH
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,6 @@
 package ch.mimo.netty.handler.codec.icap;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.util.internal.StringUtil;
 
 /**
  * Main Icap Response implementation. This is the starting point to create any Icap response.
@@ -29,7 +28,8 @@ public class DefaultIcapResponse extends AbstractIcapMessage implements IcapResp
 
 	private IcapResponseStatus status;
 	private ByteBuf optionsContent;
-	
+	private Integer useOriginalBodyOffset;
+
 	/**
 	 * Will create an instance of IcapResponse.
 	 * 
@@ -62,6 +62,16 @@ public class DefaultIcapResponse extends AbstractIcapMessage implements IcapResp
 	@Override
 	public String toString() {
 		return super.toString() + StringUtil.NEWLINE + "Response Status: " + status.name();
+	}
+
+	@Override
+	public void setUseOriginalBody(Integer offset) {
+		useOriginalBodyOffset = offset;
+	}
+
+	@Override
+	public Integer getUseOriginalBody() {
+		return useOriginalBodyOffset;
 	}
 
 	@Override

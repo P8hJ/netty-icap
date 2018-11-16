@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
  * Modifications Copyright (c) 2018 eBlocker GmbH
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,7 +31,7 @@ public class DefaultIcapChunk extends DefaultHttpContent implements IcapChunk {
 	private boolean preview;
 	private boolean earlyTerminated;
 	private boolean last;
-	
+
 	public DefaultIcapChunk(ByteBuf content) {
 		super(content);
 		last = !content.isReadable();
@@ -59,6 +59,6 @@ public class DefaultIcapChunk extends DefaultHttpContent implements IcapChunk {
 	}
 
 	public String toString() {
-		return "DeafultIcapChunk: [isPreviewChunk=" + preview + "] [wasEarlyTerminated=" + earlyTerminated + "] [data=" + content().readableBytes() + "]";
+		return "DefaultIcapChunk: [isPreviewChunk=" + preview + "] [wasEarlyTerminated=" + earlyTerminated + "] [data=" + content().readableBytes() + "]";
 	}
 }
