@@ -15,23 +15,22 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
-
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
-import junit.framework.Assert;
-
-import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
+import junit.framework.Assert;
+
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 
 public final class DataMockery extends Assert {
 
@@ -1312,6 +1311,25 @@ public final class DataMockery extends Assert {
 		ByteBuf buffer = Unpooled.buffer();
 		buffer.writeBytes("This is data that was returned by an origin server.".getBytes(IcapCodecUtil.ASCII_CHARSET));
 		FullHttpResponse httpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,HttpResponseStatus.OK, buffer);
+		request.setHttpResponse(httpResponse);
+		httpResponse.headers().add("Date","Mon, 10 Jan 2000 09:52:22 GMT");
+		httpResponse.headers().add("Server","Apache/1.3.6 (Unix)");
+		httpResponse.headers().add("ETag","\"63840-1ab7-378d415b\"");
+		httpResponse.headers().add("Content-Type","text/html");
+		httpResponse.headers().add("Content-Length","151");
+		return request;
+	}
+
+	public static final IcapRequest createRESPMODWithPreviewZeroDataIcapRequest() {
+		IcapRequest request = new DefaultIcapRequest(IcapVersion.ICAP_1_0,IcapMethod.RESPMOD,"icap://icap.mimo.ch:1344/reqmod","icap-server.net");
+		request.addHeader("Preview","0");
+		request.setBody(IcapMessageElementEnum.RESBODY);
+		FullHttpRequest httpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1,HttpMethod.GET,"/origin-resource");
+		request.setHttpRequest(httpRequest);
+		httpRequest.headers().add("Host","www.origin-server.com");
+		httpRequest.headers().add("Accept","text/html, text/plain, image/gif");
+		httpRequest.headers().add("Accept-Encoding","gzip, compress");
+		FullHttpResponse httpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,HttpResponseStatus.OK);
 		request.setHttpResponse(httpResponse);
 		httpResponse.headers().add("Date","Mon, 10 Jan 2000 09:52:22 GMT");
 		httpResponse.headers().add("Server","Apache/1.3.6 (Unix)");
