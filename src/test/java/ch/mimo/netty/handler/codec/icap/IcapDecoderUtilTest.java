@@ -16,7 +16,9 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import io.netty.buffer.Unpooled;
 import junit.framework.Assert;
@@ -353,7 +355,12 @@ public class IcapDecoderUtilTest extends Assert {
 	@Test
 	public void testIEOFChunkSize() throws DecodingException {
 		String line ="0; ieof";
-		assertEquals("wrong chunk size",-1,IcapDecoderUtil.getChunkSize(line));
+		assertEquals("wrong chunk size", 0, IcapDecoderUtil.getChunkSize(line));
+
+		Map<String, String> extensions = IcapDecoderUtil.getExtensions(line);
+		assertNotNull("no extensions", extensions);
+		assertEquals("wrong extension size", 1, extensions.size());
+		assertEquals("wrong extension value", "", extensions.get(IcapCodecUtil.EXTENSION_IEOF));
 	}
 	
 	@Test
@@ -377,5 +384,40 @@ public class IcapDecoderUtilTest extends Assert {
 			exception = true;
 		}
 		assertTrue("No exception was thrown",exception);
+	}
+
+	@Test
+	public void testChunkSizeExtensions() throws DecodingException {
+		String line ="0; extensionA = abc; extensionB = def ;extensionC=ghi";
+		assertEquals("wrong chunk size", 0, IcapDecoderUtil.getChunkSize(line));
+
+		Map<String, String> extensions = IcapDecoderUtil.getExtensions(line);
+		assertNotNull("no extensions", extensions);
+		assertEquals("wrong extension size", 3, extensions.size());
+		assertEquals("wrong extension value", "abc", extensions.get("extensionA"));
+		assertEquals("wrong extension value", "def", extensions.get("extensionB"));
+		assertEquals("wrong extension value", "ghi", extensions.get("extensionC"));
+	}
+
+	@Test
+	public void testChunkSizeExtensionsTrailingSemicolon() throws DecodingException {
+		String line ="0; extensionA = abc; extensionB = def ;extensionC=ghi;";
+		assertEquals("wrong chunk size", 0, IcapDecoderUtil.getChunkSize(line));
+
+		Map<String, String> extensions = IcapDecoderUtil.getExtensions(line);
+		assertNotNull("no extensions", extensions);
+		assertEquals("wrong extension size", 3, extensions.size());
+		assertEquals("wrong extension value", "abc", extensions.get("extensionA"));
+		assertEquals("wrong extension value", "def", extensions.get("extensionB"));
+		assertEquals("wrong extension value", "ghi", extensions.get("extensionC"));
+	}
+
+	@Test
+	public void testChunkSizeExtensionsEmpty() throws DecodingException {
+		String line ="0;";
+		assertEquals("wrong chunk size", 0, IcapDecoderUtil.getChunkSize(line));
+
+		Map<String, String> extensions = IcapDecoderUtil.getExtensions(line);
+		assertEquals("extensions present", Collections.emptyMap(), extensions);
 	}
 }
