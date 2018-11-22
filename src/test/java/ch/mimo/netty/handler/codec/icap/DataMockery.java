@@ -1126,7 +1126,7 @@ public final class DataMockery extends Assert {
 		return chunk;
 	}
 	
-	public static final IcapChunk crateRESPMODWithGetRequestAndPreviewLastIcapChunk() {
+	public static final IcapChunk createRESPMODWithGetRequestAndPreviewLastIcapChunk() {
 		IcapChunkTrailer trailer = new DefaultIcapChunkTrailer();
 		trailer.setPreviewChunk(true);
 		return trailer;

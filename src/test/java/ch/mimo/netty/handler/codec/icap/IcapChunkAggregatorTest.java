@@ -164,7 +164,7 @@ public class IcapChunkAggregatorTest extends AbstractIcapTest {
 	}
 
 	@Test
-	public void aggregateREQModRequestWithCunksAndTrailingHeaders() throws UnsupportedEncodingException {
+	public void aggregateREQModRequestWithChunksAndTrailingHeaders() throws UnsupportedEncodingException {
 		embeddedChannel.writeInbound(DataMockery.createREQMODWithTwoChunkBodyAndEncapsulationHeaderIcapMessage());
 		embeddedChannel.writeInbound(DataMockery.createREQMODWithTwoChunkBodyIcapChunkOne());
 		embeddedChannel.writeInbound(DataMockery.createREQMODWithTwoChunkBodyIcapChunkTwo());
