@@ -111,15 +111,15 @@ public class ReadChunkSizeState extends State<ReadChunkSizeState.DecisionState> 
 			}
 			IcapDecoderUtil.readLine(buffer,10);
 			if(icapMessageDecoder.message.isPreviewMessage()) {
+					return StateReturnValue.createRelevantResultWithDecisionInformation(new DefaultIcapChunkTrailer(true, false),DecisionState.IS_LAST_PREVIEW_CHUNK);
+			} else {
 				try {
 					Integer useOriginalBody = getUseOriginalBody(extensions);
-					return StateReturnValue.createRelevantResultWithDecisionInformation(new DefaultIcapChunkTrailer(true, false, useOriginalBody),DecisionState.IS_LAST_PREVIEW_CHUNK);
+					return StateReturnValue.createRelevantResultWithDecisionInformation(new DefaultIcapChunkTrailer(false, false, useOriginalBody), DecisionState.IS_LAST_CHUNK);
 				} catch (DecodingException e) {
 					return StateReturnValue.createIrrelevantResultWithDecisionInformation(DecisionState.RESET);
 				}
-			} else {
-				return StateReturnValue.createRelevantResultWithDecisionInformation(new DefaultIcapChunkTrailer(icapMessageDecoder.message.isPreviewMessage(),false),DecisionState.IS_LAST_CHUNK);
-			}		
+			}
 		} else {
 			return StateReturnValue.createIrrelevantResultWithDecisionInformation(DecisionState.RESET);
 		}

@@ -1360,7 +1360,7 @@ public final class DataMockery extends Assert {
 		return request;
 	}
 
-	public static final IcapResponse createREQMODWithPartialContentUsingCompleteOriginalBodyIcapResponse() {
+	public static IcapResponse createREQMODWithPartialContentUsingCompleteOriginalBodyIcapResponse() {
 		IcapResponse response = new DefaultIcapResponse(IcapVersion.ICAP_1_0, IcapResponseStatus.PARTIAL_CONTENT);
 		response.addHeader("Host","icap-server.net");
 		response.addHeader("ISTag","Serial-0815");
@@ -1376,7 +1376,7 @@ public final class DataMockery extends Assert {
 		return response;
 	}
 
-	public static final ByteBuf createREQMODWithPartialContentUsingCompleteOriginalBodyEncodedResponse() throws UnsupportedEncodingException {
+	public static ByteBuf createREQMODWithPartialContentResponse() throws UnsupportedEncodingException {
 		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer, "ICAP/1.0 206 Partial Content");
 		addLine(buffer, "Host: icap-server.net");
@@ -1393,20 +1393,36 @@ public final class DataMockery extends Assert {
 		return buffer;
 	}
 
-	public static final IcapChunkTrailer createREQMODWithPartialContentUsingOriginalBodyIcapChunkTrailer(int offset) {
+	public static void assertREQMODWithPartialContentResponse(IcapResponse response) {
+		assertNotNull("response was null", response);
+		assertEquals("wrong icap version", IcapVersion.ICAP_1_0, response.getProtocolVersion());
+		assertEquals("wrong icap status code", IcapResponseStatus.PARTIAL_CONTENT, response.getStatus());
+		assertHeaderValue("Host","icap-server.net", response);
+		assertHeaderValue("ISTag","Serial-0815", response);
+		assertNotNull("Http request was null", response.getHttpRequest());
+		HttpRequest httpRequest = response.getHttpRequest();
+		assertEquals("wrong http version", HttpVersion.HTTP_1_1, httpRequest.protocolVersion());
+		assertHttpMessageHeaderValue("Host","www.origin-server.com", httpRequest);
+		assertHttpMessageHeaderValue("Accept","text/html, text/plain", httpRequest);
+		assertHttpMessageHeaderValue("Accept-Encoding","compress", httpRequest);
+		assertHttpMessageHeaderValue("Cookie","ff39fk3jur@4ii0e02i", httpRequest);
+		assertHttpMessageHeaderValue("If-None-Match","\"xyzzy\", \"r2d2xxxx\"", httpRequest);
+	}
+
+	public static IcapChunkTrailer createREQMODWithPartialContentUsingOriginalBodyIcapChunkTrailer(int offset) {
 		DefaultIcapChunkTrailer trailer = new DefaultIcapChunkTrailer(false, false);
 		trailer.setUseOriginalBody(offset);
 		return trailer;
 	}
 
-	public static final ByteBuf createREQMODWithPartialContentUsingOriginalBodyTrailerEncodedChunkTrailer(int offset) throws UnsupportedEncodingException {
+	public static ByteBuf createREQMODWithPartialContentUsingOriginalBodyTrailerEncodedChunkTrailer(int offset) throws UnsupportedEncodingException {
 		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer, "0;use-original-body=" + offset);
 		addLine(buffer, null);
 		return buffer;
 	}
 
-	public static final IcapResponse createREQMODWithPartialContentUsingModifiedOriginalBodyIcapResponse() {
+	public static IcapResponse createREQMODWithPartialContentUsingModifiedOriginalBodyIcapResponse() {
 		IcapResponse response = new DefaultIcapResponse(IcapVersion.ICAP_1_0, IcapResponseStatus.PARTIAL_CONTENT);
 		response.addHeader("Host","icap-server.net");
 		response.addHeader("ISTag","Serial-0815");
@@ -1424,7 +1440,7 @@ public final class DataMockery extends Assert {
 		return response;
 	}
 
-	public static final ByteBuf createREQMODWithPartialContentUsingModifiedOriginalBodyEncodedResponse() throws UnsupportedEncodingException {
+	public static ByteBuf createREQMODWithPartialContentUsingModifiedOriginalBodyResponse() throws UnsupportedEncodingException {
 		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer, "ICAP/1.0 206 Partial Content");
 		addLine(buffer, "Host: icap-server.net");
@@ -1438,7 +1454,24 @@ public final class DataMockery extends Assert {
 		addLine(buffer, "Cookie: ff39fk3jur@4ii0e02i");
 		addLine(buffer, "If-None-Match: \"xyzzy\", \"r2d2xxxx\"");
 		addLine(buffer, null);
+		addChunk(buffer, "This replaced the first five bytes of the original content.");
+		addLastChunk(buffer, ";use-original-body=5");
 		return buffer;
+	}
+
+	public static void assertREQMODWithPartialContentUsingModifiedOriginalBodyIcapChunk(IcapChunk chunk) {
+		assertNotNull("chunk is null", chunk);
+		assertFalse("chunk ist last", chunk.isLast());
+		ByteBuf buffer = chunk.content();
+		assertNotNull("chunk buffer is null", buffer);
+		assertFalse("chunk buffer is empty", Unpooled.EMPTY_BUFFER.equals(buffer));
+		assertEquals("chunk content was wrong", "This replaced the first five bytes of the original content.", buffer.toString(IcapCodecUtil.ASCII_CHARSET));
+	}
+
+	public static void assertREQMODWithPartialContentUsingModifiedOriginalBodyIcapChunkTrailer(IcapChunkTrailer trailer) {
+		assertNotNull("trailer was null", trailer);
+		assertTrue("is not last chunk", trailer.isLast());
+		assertEquals("unexpected offset", Integer.valueOf(5), trailer.getUseOriginalBody());
 	}
 
 	public static final IcapChunk createREQMODWithPartialContentUsingModifiedOriginalBodyIcapChunk() {
@@ -1529,7 +1562,7 @@ public final class DataMockery extends Assert {
         addLine(buffer, null);
         return buffer;
     }
-	
+
 	public static final IcapResponse createOPTIONSResponseWithBodyInIcapResponse() {
 		IcapResponse response = new DefaultIcapResponse(IcapVersion.ICAP_1_0,IcapResponseStatus.OK);
 		response.addHeader("Methods","REQMOD RESPMOD");
@@ -1545,7 +1578,7 @@ public final class DataMockery extends Assert {
 		response.setContent(buffer);
 		return response;
 	}
-	
+
 	public static final ByteBuf create204ResponseWithoutEncapsulatedHeader() throws UnsupportedEncodingException {
 		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"ICAP/1.0 204 No Content");
@@ -1558,7 +1591,7 @@ public final class DataMockery extends Assert {
 		addLine(buffer,null);
 		return buffer;
 	}
-	
+
 	public static final ByteBuf create100ResponseWithoutEncapsulatedHeader() throws UnsupportedEncodingException {
 		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer,"ICAP/1.0 100 Continue");
@@ -1566,7 +1599,7 @@ public final class DataMockery extends Assert {
 		addLine(buffer,null);
 		return buffer;
 	}
-	
+
 	public static final IcapRequest createREQMODWithPostRequestAndDataIcapMessage() {
 		IcapRequest request = new DefaultIcapRequest(IcapVersion.ICAP_1_0,IcapMethod.REQMOD,"icap://icap.mimo.ch:1344/reqmod","icap-server.net");
 		ByteBuf buffer = Unpooled.buffer();
@@ -1580,7 +1613,7 @@ public final class DataMockery extends Assert {
 		httpRequest.headers().add("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
 		return request;
 	}
-	
+
 	public static final void assertCreateREQMODWithPostRequestAndDataIcapRequest(IcapRequest message) {
 		assertEquals("Uri is wrong","icap://icap.mimo.ch:1344/reqmod",message.getUri());
 		assertHeaderValue("Host","icap-server.net",message);
@@ -1595,7 +1628,7 @@ public final class DataMockery extends Assert {
 		assertEquals("http request message content was wrong","This is data that was returned by an origin server.",message.getHttpRequest().content().toString(IcapCodecUtil.ASCII_CHARSET));
 		assertNull("http response was not null",message.getHttpResponse());
 	}
-	
+
 	public static final IcapResponse createREQMODWithPostRequestIcapResponse() {
 		IcapResponse response = new DefaultIcapResponse(IcapVersion.ICAP_1_0,IcapResponseStatus.OK);
 		response.addHeader("Host","icap-server.net");
@@ -1611,7 +1644,7 @@ public final class DataMockery extends Assert {
 		httpRequest.headers().add("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
 		return response;
 	}
-	
+
 	public static final void assertCreateREQMODWithPostRequestAndDataIcapResponse(IcapResponse message) {
 		assertEquals("wrong icap version",IcapVersion.ICAP_1_0,message.getProtocolVersion());
 		assertEquals("wrong response status",IcapResponseStatus.OK,message.getStatus());
@@ -1627,7 +1660,7 @@ public final class DataMockery extends Assert {
 		assertEquals("http request message content was wrong","This is data that was returned by an origin server.",message.getHttpRequest().content().toString(IcapCodecUtil.ASCII_CHARSET));
 		assertNull("http response was not null",message.getHttpResponse());
 	}
-	
+
 	private static final void addLine(ByteBuf buffer, String value) throws UnsupportedEncodingException {
 		if(value == null) {
 			buffer.writeBytes(IcapCodecUtil.CRLF);
@@ -1636,7 +1669,7 @@ public final class DataMockery extends Assert {
 			buffer.writeBytes(IcapCodecUtil.CRLF);
 		}
 	}
-	
+
 	private static void addChunk(ByteBuf buffer, String chunkData) throws UnsupportedEncodingException {
 		int length = chunkData.length();
 		String hex = Integer.toString(length,16);
@@ -1645,31 +1678,36 @@ public final class DataMockery extends Assert {
 		buffer.writeBytes(chunkData.getBytes("ASCII"));
 		buffer.writeBytes(IcapCodecUtil.CRLF);
 	}
-	
+
 	private static void addLastChunk(ByteBuf buffer) throws UnsupportedEncodingException {
-		buffer.writeBytes("0".getBytes("ASCII"));
-		buffer.writeBytes(IcapCodecUtil.CRLF);
-		buffer.writeBytes(IcapCodecUtil.CRLF);
+		addLastChunk(buffer, "");
 	}
-	
+
+    private static void addLastChunk(ByteBuf buffer, String extensions) throws UnsupportedEncodingException {
+        buffer.writeBytes("0".getBytes("ASCII"));
+        buffer.writeBytes(extensions.getBytes("ASCII"));
+        buffer.writeBytes(IcapCodecUtil.CRLF);
+        buffer.writeBytes(IcapCodecUtil.CRLF);
+    }
+
 	private static void assertHeaderValue(String key, String expected, IcapMessage message) {
 		assertNotNull("Message was null",message);
 		assertTrue("Key does not exist [" + key + "]",message.containsHeader(key));
 		assertEquals("The header: " + key + " is invalid",expected,message.getHeader(key));
 	}
-	
+
 	private static void assertTrailingHeaderValue(String key, String expected, IcapChunkTrailer message) {
 		assertNotNull("Chunk trailer was null",message);
 		assertTrue("Key does not exist [" + key + "]",message.trailingHeaders().contains(key));
 		assertEquals("The header: " + key + " is invalid",expected,message.trailingHeaders().get(key));
 	}
-	
+
 	private static void assertHttpMessageHeaderValue(String key, String expected, HttpMessage message) {
 		assertNotNull("Message was null",message);
 		assertTrue("Key does not exist [" + key + "]",message.headers().contains(key));
 		assertEquals("The header: " + key + " is invalid",expected,message.headers().get(key));
 	}
-	
+
 	private static void assertChunk(String title, IcapChunk chunk, String expectedContent, boolean isLast) {
 		assertNotNull(title + " chunk is null",chunk);
 		if(isLast) {

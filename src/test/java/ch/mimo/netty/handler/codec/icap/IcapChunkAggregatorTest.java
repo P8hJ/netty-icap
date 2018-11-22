@@ -127,7 +127,7 @@ public class IcapChunkAggregatorTest extends AbstractIcapTest {
 	public void aggregateRESPMODRequestWithPreviewChunks() throws UnsupportedEncodingException {
 		embeddedChannel.writeInbound(DataMockery.createRESPMODWithGetRequestAndPreviewIncludingEncapsulationHeaderIcapRequest());
 		embeddedChannel.writeInbound(DataMockery.createRESPMODWithGetRequestAndPreviewIcapChunk());
-		embeddedChannel.writeInbound(DataMockery.crateRESPMODWithGetRequestAndPreviewLastIcapChunk());
+		embeddedChannel.writeInbound(DataMockery.createRESPMODWithGetRequestAndPreviewLastIcapChunk());
 		IcapRequest request = readInbound();
 		DataMockery.assertCreateRESPMODWithGetRequestAndPreview(request);
 		String body = request.getHttpResponse().content().toString(IcapCodecUtil.ASCII_CHARSET);
@@ -143,7 +143,7 @@ public class IcapChunkAggregatorTest extends AbstractIcapTest {
 		embeddedChannel = new EmbeddedChannel(new IcapChunkAggregator(4012, true));
 		embeddedChannel.writeInbound(DataMockery.createRESPMODWithGetRequestAndPreviewIncludingEncapsulationHeaderIcapRequest());
 		embeddedChannel.writeInbound(DataMockery.createRESPMODWithGetRequestAndPreviewIcapChunk());
-		embeddedChannel.writeInbound(DataMockery.crateRESPMODWithGetRequestAndPreviewLastIcapChunk());
+		embeddedChannel.writeInbound(DataMockery.createRESPMODWithGetRequestAndPreviewLastIcapChunk());
 		IcapRequest request = readInbound();
 		DataMockery.assertCreateRESPMODWithGetRequestAndPreview(request);
 		ByteBuf buffer = request.getHttpResponse().content();

@@ -100,7 +100,7 @@ public class IcapResponseEncoderTest extends AbstractEncoderTest {
 	public void encodeREQMODWithPartialContentUsingCompleteOriginalBody() throws UnsupportedEncodingException {
 		embeddedChannel.writeOutbound(DataMockery.createREQMODWithPartialContentUsingCompleteOriginalBodyIcapResponse());
 		String request = getBufferContent(readOutbound());
-		assertResponse(DataMockery.createREQMODWithPartialContentUsingCompleteOriginalBodyEncodedResponse(), request);
+		assertResponse(DataMockery.createREQMODWithPartialContentResponse(), request);
 
 		embeddedChannel.writeOutbound(DataMockery.createREQMODWithPartialContentUsingOriginalBodyIcapChunkTrailer(0));
 		String trailer = getBufferContent(readOutbound());
@@ -111,7 +111,7 @@ public class IcapResponseEncoderTest extends AbstractEncoderTest {
 	public void encodeREQMODWithPartialContentUsingModifiedOriginalBody() throws UnsupportedEncodingException {
 		embeddedChannel.writeOutbound(DataMockery.createREQMODWithPartialContentUsingModifiedOriginalBodyIcapResponse());
 		String request = getBufferContent(readOutbound());
-		assertResponse(DataMockery.createREQMODWithPartialContentUsingModifiedOriginalBodyEncodedResponse(), request);
+		assertResponse(DataMockery.createREQMODWithPartialContentResponse(), request);
 
 		embeddedChannel.writeOutbound(DataMockery.createREQMODWithPartialContentUsingModifiedOriginalBodyIcapChunk());
 		String chunk = getBufferContent(readOutbound());
@@ -126,7 +126,7 @@ public class IcapResponseEncoderTest extends AbstractEncoderTest {
 	public void encodeREQMODWithPartialContentReplacingOriginalBody() throws UnsupportedEncodingException {
 		embeddedChannel.writeOutbound(DataMockery.createREQMODWithPartialContentReplacingOriginalBodyIcapResponse());
 		String request = getBufferContent(readOutbound());
-		assertResponse(DataMockery.createREQMODWithPartialContentReplacingOriginalBodyEncodedResponse(), request);
+		assertResponse(DataMockery.createREQMODWithPartialContentResponse(), request);
 
 		embeddedChannel.writeOutbound(DataMockery.createREQMODWithPartialContentReplacingOriginalBodyIcapChunk());
 		String chunk = getBufferContent(readOutbound());
