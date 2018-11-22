@@ -1409,10 +1409,8 @@ public final class DataMockery extends Assert {
 		assertHttpMessageHeaderValue("If-None-Match","\"xyzzy\", \"r2d2xxxx\"", httpRequest);
 	}
 
-	public static IcapChunkTrailer createREQMODWithPartialContentUsingOriginalBodyIcapChunkTrailer(int offset) {
-		DefaultIcapChunkTrailer trailer = new DefaultIcapChunkTrailer(false, false);
-		trailer.setUseOriginalBody(offset);
-		return trailer;
+	public static IcapChunkTrailer createREQMODWithPartialContentUsingOriginalBodyIcapChunkTrailer(Integer offset) {
+		return new DefaultIcapChunkTrailer(false, false, offset);
 	}
 
 	public static ByteBuf createREQMODWithPartialContentUsingOriginalBodyTrailerEncodedChunkTrailer(int offset) throws UnsupportedEncodingException {
@@ -1440,13 +1438,31 @@ public final class DataMockery extends Assert {
 		return response;
 	}
 
+	public static void assertCreateREQMODWithPartialContentUsingModifiedOriginalBodyIcapResponse(IcapResponse response) {
+		assertNotNull("response was null", response);
+		assertEquals("wrong icap version", IcapVersion.ICAP_1_0, response.getProtocolVersion());
+		assertEquals("wrong icap status code", IcapResponseStatus.PARTIAL_CONTENT, response.getStatus());
+		assertHeaderValue("Host","icap-server.net", response);
+		assertHeaderValue("ISTag","Serial-0815", response);
+		assertNotNull("use-original-body not set", response.getUseOriginalBody());
+		assertEquals("use-original-body wrong", Integer.valueOf(5), response.getUseOriginalBody());
+		assertNotNull("Http request was null", response.getHttpRequest());
+		HttpRequest httpRequest = response.getHttpRequest();
+		assertEquals("wrong http version", HttpVersion.HTTP_1_1, httpRequest.protocolVersion());
+		assertHttpMessageHeaderValue("Host","www.origin-server.com", httpRequest);
+		assertHttpMessageHeaderValue("Accept","text/html, text/plain", httpRequest);
+		assertHttpMessageHeaderValue("Accept-Encoding","compress", httpRequest);
+		assertHttpMessageHeaderValue("Cookie","ff39fk3jur@4ii0e02i", httpRequest);
+		assertHttpMessageHeaderValue("If-None-Match","\"xyzzy\", \"r2d2xxxx\"", httpRequest);
+	}
+
 	public static ByteBuf createREQMODWithPartialContentUsingModifiedOriginalBodyResponse() throws UnsupportedEncodingException {
 		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer, "ICAP/1.0 206 Partial Content");
 		addLine(buffer, "Host: icap-server.net");
 		addLine(buffer, "ISTag: Serial-0815");
 		addLine(buffer, "Encapsulated: req-hdr=0, req-body=170");
-		addLine(buffer, "");
+		addLine(buffer, null);
 		addLine(buffer, "GET / HTTP/1.1");
 		addLine(buffer, "Host: www.origin-server.com");
 		addLine(buffer, "Accept: text/html, text/plain");
@@ -1480,6 +1496,10 @@ public final class DataMockery extends Assert {
 		return new DefaultIcapChunk(buffer);
 	}
 
+	public static final IcapChunk createREQMODWithPartialContentUsingModifiedOriginalBodyIcapChunkTrailer() {
+		return createREQMODWithPartialContentUsingOriginalBodyIcapChunkTrailer(5);
+	}
+
 	public static final ByteBuf createREQMODWithPartialContentUsingModifiedOriginalBodyEncodedChunk() throws UnsupportedEncodingException {
 		ByteBuf buffer = Unpooled.buffer();
 		addLine(buffer, "3b");
@@ -1502,23 +1522,6 @@ public final class DataMockery extends Assert {
         httpRequest.headers().add("Cookie","ff39fk3jur@4ii0e02i");
         httpRequest.headers().add("If-None-Match","\"xyzzy\", \"r2d2xxxx\"");
         return response;
-    }
-
-    public static final ByteBuf createREQMODWithPartialContentReplacingOriginalBodyEncodedResponse() throws UnsupportedEncodingException {
-        ByteBuf buffer = Unpooled.buffer();
-        addLine(buffer, "ICAP/1.0 206 Partial Content");
-        addLine(buffer, "Host: icap-server.net");
-        addLine(buffer, "ISTag: Serial-0815");
-        addLine(buffer, "Encapsulated: req-hdr=0, req-body=170");
-        addLine(buffer, "");
-        addLine(buffer, "GET / HTTP/1.1");
-        addLine(buffer, "Host: www.origin-server.com");
-        addLine(buffer, "Accept: text/html, text/plain");
-        addLine(buffer, "Accept-Encoding: compress");
-        addLine(buffer, "Cookie: ff39fk3jur@4ii0e02i");
-        addLine(buffer, "If-None-Match: \"xyzzy\", \"r2d2xxxx\"");
-        addLine(buffer, null);
-        return buffer;
     }
 
     public static final IcapChunk createREQMODWithPartialContentReplacingOriginalBodyIcapChunk() {

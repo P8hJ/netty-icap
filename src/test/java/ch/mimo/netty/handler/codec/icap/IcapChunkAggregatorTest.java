@@ -189,6 +189,15 @@ public class IcapChunkAggregatorTest extends AbstractIcapTest {
 	}
 
 	@Test
+	public void aggregateREQModResponseWithUseOriginalBody() {
+		embeddedChannel.writeInbound(DataMockery.createREQMODWithPartialContentUsingModifiedOriginalBodyIcapResponse());
+		embeddedChannel.writeInbound(DataMockery.createREQMODWithPartialContentUsingModifiedOriginalBodyIcapChunk());
+		embeddedChannel.writeInbound(DataMockery.createREQMODWithPartialContentUsingModifiedOriginalBodyIcapChunkTrailer());
+		IcapResponse response = readInbound();
+		DataMockery.assertCreateREQMODWithPartialContentUsingModifiedOriginalBodyIcapResponse(response);
+	}
+
+	@Test
 	public void exceedMaximumBodySize() throws UnsupportedEncodingException {
 		embeddedChannel = new EmbeddedChannel(new IcapChunkAggregator(20));
 		embeddedChannel.writeInbound(DataMockery.createREQMODWithTwoChunkBodyAndEncapsulationHeaderIcapMessage());
