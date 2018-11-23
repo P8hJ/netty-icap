@@ -38,9 +38,14 @@ public class DefaultIcapChunkTrailer extends DefaultLastHttpContent implements I
 	}
 	
 	public DefaultIcapChunkTrailer(boolean isPreview, boolean isEarlyTerminated) {
-		this();
 		this.preview = isPreview;
 		this.earlyTerminated = isEarlyTerminated;
+	}
+
+	public DefaultIcapChunkTrailer(boolean isPreview, boolean isEarlyTerminated, Integer useOriginalBodyOffset) {
+		this.preview = isPreview;
+		this.earlyTerminated = isEarlyTerminated;
+		this.useOriginalBodyOffset = useOriginalBodyOffset;
 	}
 	
 	@Override

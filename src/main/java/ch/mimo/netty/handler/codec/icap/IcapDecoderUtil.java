@@ -19,7 +19,10 @@ package ch.mimo.netty.handler.codec.icap;
 import io.netty.buffer.ByteBuf;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Utility that provides decoding support for ICAP messages.
@@ -190,13 +193,10 @@ public final class IcapDecoderUtil {
 	 * parses the chunk size from a line.
 	 * 
 	 * @param line
-	 * @return -1 if the chunk size indicates that a preview message is early terminated.
+	 * @return the chunk size
 	 */
     public static int getChunkSize(String line) throws DecodingException {
         String hex = line.trim();
-        if(hex.equals(IcapCodecUtil.IEOF_SEQUENCE_STRING)) {
-        	return -1;
-        }
         for (int i = 0; i < hex.length(); i ++) {
             char c = hex.charAt(i);
             if (c == ';' || Character.isWhitespace(c) || Character.isISOControl(c)) {
@@ -210,7 +210,43 @@ public final class IcapDecoderUtil {
         	throw new DecodingException(nfe);
         }
     }
-	
+
+	/** parses the chunk extensions from a line
+	 *
+	 * @param line
+	 * @return map containing extensions
+	 */
+	public static Map<String, String> getExtensions(String line) {
+    	Map<String, String> extensions = null;
+		int separator = -1;
+		for(int i = 0; i < line.length(); ++i) {
+			char c = line.charAt(i);
+			if (c == ';') {
+				if (separator == -1) {
+					extensions = new LinkedHashMap<String, String>();
+				} else if (separator + 1 < i) {
+					String[] extension = splitExtension(line.substring(separator + 1, i));
+					extensions.put(extension[0], extension[1]);
+				}
+				separator = i;
+			}
+		}
+		if (separator != -1 && separator + 1 < line.length()) {
+			String[] extension = splitExtension(line.substring(separator + 1));
+			extensions.put(extension[0], extension[1]);
+		}
+		return extensions != null ? extensions : Collections.<String, String>emptyMap();
+	}
+
+	public static String[] splitExtension(String extension) {
+    	extension = extension.trim();
+    	int equals = extension.indexOf('=');
+		if (equals == -1 || equals + 1 == extension.length()) {
+			return new String[] { extension, "" };
+		}
+		return new String[] { extension.substring(0, equals).trim(), extension.substring(equals + 1).trim() };
+	}
+
     /**
      * parses all available message headers.
      * @param buffer @see {@link ByteBuf} that contains the headers.

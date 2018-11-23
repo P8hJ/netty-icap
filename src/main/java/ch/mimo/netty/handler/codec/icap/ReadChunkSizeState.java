@@ -18,6 +18,8 @@ package ch.mimo.netty.handler.codec.icap;
 
 import io.netty.buffer.ByteBuf;
 
+import java.util.Map;
+
 /**
  * Decoder State that reads chunk size
  * 
@@ -65,38 +67,41 @@ public class ReadChunkSizeState extends State<ReadChunkSizeState.DecisionState> 
 	/**
 	 * 1. chunk size is not 0 --> normal chunk reading is required. (go to chunk reading)
 	 * 2. chunk size is 0 --> end of body (end of processing)
-	 * 3. chunk size is 0 and we are in preview mode / preview is therefore sent and possible more is to come. (stay in state)
-	 * 4. chunk size is 0; ieof early end of preview (stay in state)
+	 * 3. chunk size is 0 and extension ieof is present -> early end of preview (stay in state)
+	 * 4. chunk size is 0 and we are in preview mode / preview is therefore sent and possible more is to come. (stay in state)
 	 * 5. next message arrives and we are still in preview mode. (step out and start over)
 	 *
 	 * Strategy:
 	 * 
 	 * 1. preview read next line
-	 * 2. attempt to parse chunk length
-	 * 2a. chunk length could not be parsed step out (END STATE/reset).
-	 * 2b. chunk length could be parsed, adjust readerIndex by reading the line.
+	 * 2. attempt to parse chunk size and extensions
+	 * 2a. chunk length / extensions could not be parsed step out (END STATE/reset).
+	 * 2b. chunk length / extensions could be parsed, adjust readerIndex by reading the line.
 	 * 3. chunk size > 0, read the next chunk. (END STATE).
-	 * 4. chunk size == -1, early termination of preview reading process. Stay in state and wait for more data.
+	 * 4. chunk size == 0 && ieof extension is present, early termination of preview reading process. Stay in state and wait for more data.
 	 * 5. chunk size == 0 and message is preview message. Stay in state and wait for more data.
 	 * 6. chunk size == 0 step out (END STATE/reset).
 	 */
 	public StateReturnValue execute(ByteBuf buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
-		int chunkSize = 0;
+		int chunkSize;
+		Map<String, String> extensions;
 		String previewLine = IcapDecoderUtil.previewLine(buffer,icapMessageDecoder.maxInitialLineLength);
 		try {
 			chunkSize = IcapDecoderUtil.getChunkSize(previewLine);
+			extensions = IcapDecoderUtil.getExtensions(previewLine);
 			IcapDecoderUtil.readLine(buffer,icapMessageDecoder.maxInitialLineLength);
 		} catch(DecodingException de) {
 			return StateReturnValue.createIrrelevantResultWithDecisionInformation(DecisionState.RESET);
 		}
 		icapMessageDecoder.currentChunkSize = chunkSize;
+
 		if(chunkSize > 0) {
 			if(chunkSize >= icapMessageDecoder.maxChunkSize) {
 				return StateReturnValue.createIrrelevantResultWithDecisionInformation(DecisionState.READ_HUGE_CHUNK_IN_SMALER_CHUNKS);
 			} else {
 				return StateReturnValue.createIrrelevantResultWithDecisionInformation(DecisionState.READ_CHUNK);
 			}
-		} else if(chunkSize == -1) {
+		} else if(chunkSize == 0 && extensions.containsKey(IcapCodecUtil.EXTENSION_IEOF)) {
 			icapMessageDecoder.currentChunkSize = 0;
 			IcapDecoderUtil.readLine(buffer,Integer.MAX_VALUE);
 			return StateReturnValue.createRelevantResultWithDecisionInformation(new DefaultIcapChunkTrailer(true,true),DecisionState.IS_LAST_PREVIEW_CHUNK);
@@ -106,10 +111,15 @@ public class ReadChunkSizeState extends State<ReadChunkSizeState.DecisionState> 
 			}
 			IcapDecoderUtil.readLine(buffer,10);
 			if(icapMessageDecoder.message.isPreviewMessage()) {
-				return StateReturnValue.createRelevantResultWithDecisionInformation(new DefaultIcapChunkTrailer(true,false),DecisionState.IS_LAST_PREVIEW_CHUNK);
+					return StateReturnValue.createRelevantResultWithDecisionInformation(new DefaultIcapChunkTrailer(true, false),DecisionState.IS_LAST_PREVIEW_CHUNK);
 			} else {
-				return StateReturnValue.createRelevantResultWithDecisionInformation(new DefaultIcapChunkTrailer(icapMessageDecoder.message.isPreviewMessage(),false),DecisionState.IS_LAST_CHUNK);
-			}		
+				try {
+					Integer useOriginalBody = getUseOriginalBody(extensions);
+					return StateReturnValue.createRelevantResultWithDecisionInformation(new DefaultIcapChunkTrailer(false, false, useOriginalBody), DecisionState.IS_LAST_CHUNK);
+				} catch (DecodingException e) {
+					return StateReturnValue.createIrrelevantResultWithDecisionInformation(DecisionState.RESET);
+				}
+			}
 		} else {
 			return StateReturnValue.createIrrelevantResultWithDecisionInformation(DecisionState.RESET);
 		}
@@ -122,6 +132,18 @@ public class ReadChunkSizeState extends State<ReadChunkSizeState.DecisionState> 
 	
 	private boolean checkForLineBreak(ByteBuf buffer) {
 		byte previewByte = buffer.getByte(buffer.readerIndex() + 1);
-		return previewByte == IcapCodecUtil.CR | previewByte == IcapCodecUtil.LF;
+		return previewByte == IcapCodecUtil.CR || previewByte == IcapCodecUtil.LF;
+	}
+
+	private Integer getUseOriginalBody(Map<String, String> extensions) throws DecodingException {
+		String value = extensions.get(IcapCodecUtil.EXTENSION_USE_ORIGINAL_BODY);
+		if (value == null) {
+			return null;
+		}
+		try {
+			return Integer.parseInt(value);
+		} catch (NumberFormatException e) {
+			throw new DecodingException(e);
+		}
 	}
 }

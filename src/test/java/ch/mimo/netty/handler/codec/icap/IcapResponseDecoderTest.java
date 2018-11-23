@@ -69,8 +69,20 @@ public class IcapResponseDecoderTest extends AbstractIcapTest {
 		IcapChunk chunk3 = readInbound();
 		DataMockery.assertCreateREQMODWithTwoChunkBodyThirdChunk(chunk3);
 	}
-	
-	@Test 
+
+	@Test
+	public void decodeREQMODResponsePartialContentUsingModifiedOriginalBodyResponse() throws UnsupportedEncodingException {
+		embeddedChannel.writeInbound(DataMockery.createREQMODWithPartialContentUsingModifiedOriginalBodyResponse());
+		IcapResponse response = readInbound();
+		doOutput(response.toString());
+		DataMockery.assertREQMODWithPartialContentResponse(response);
+		IcapChunk chunk = readInbound();
+		DataMockery.assertREQMODWithPartialContentUsingModifiedOriginalBodyIcapChunk(chunk);
+		IcapChunkTrailer trailer = readInbound();
+		DataMockery.assertREQMODWithPartialContentUsingModifiedOriginalBodyIcapChunkTrailer(trailer);
+	}
+
+	@Test
 	public void decodeRESPMODWithGetRequestAndPreview() throws UnsupportedEncodingException {
 		embeddedChannel.writeInbound(DataMockery.createRESPMODWithGetRequestAndPreviewResponse());
 		IcapResponse response = readInbound();
@@ -93,7 +105,7 @@ public class IcapResponseDecoderTest extends AbstractIcapTest {
 	}
 	
 	@Test
-	public void decode100ContineFollowedBy204NoContent() throws UnsupportedEncodingException {
+	public void decode100ContinueFollowedBy204NoContent() throws UnsupportedEncodingException {
 		embeddedChannel.writeInbound(DataMockery.create100ContinueResponse());
 		IcapResponse result = readInbound();
 		assertNotNull("The decoded icap request instance is null",result);

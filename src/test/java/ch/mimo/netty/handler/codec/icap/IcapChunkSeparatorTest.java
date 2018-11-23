@@ -108,6 +108,17 @@ public class IcapChunkSeparatorTest extends AbstractIcapTest {
 		assertNotNull("chunk trailer was null",trailer);
 		assertTrue("trailer is not marked as preview",trailer.isPreviewChunk());
 	}
+
+	@Test
+	public void separateREQMODWithPreviewZeroData() {
+		embeddedChannel.writeOutbound(DataMockery.createRESPMODWithPreviewZeroDataIcapRequest());
+		IcapMessage message = readOutbound();
+		assertNotNull("message was null", message);
+		assertEquals("message body indicator is wrong", IcapMessageElementEnum.RESBODY,message.getBodyType());
+		IcapChunkTrailer trailer = readOutbound();
+		assertNotNull("chunk trailer was null", trailer);
+		assertTrue("trailer is not marked as preview", trailer.isPreviewChunk());
+	}
 	
 	@Test
 	public void separateREQMODWithPreviewDataAndEarlyTermination() {

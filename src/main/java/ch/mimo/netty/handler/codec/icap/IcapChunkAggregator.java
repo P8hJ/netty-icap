@@ -126,6 +126,9 @@ public class IcapChunkAggregator extends ChannelInboundHandlerAdapter {
                         message.addHeader(name, trailer.trailingHeaders().get(name));
                     }
                 }
+                if (message.getIcapMessage() instanceof IcapResponse) {
+					((IcapResponse)message.getIcapMessage()).setUseOriginalBody(trailer.getUseOriginalBody());
+				}
                 ctx.fireChannelRead(message.getIcapMessage());
     		}
     	} else if(msg instanceof IcapChunk) {
