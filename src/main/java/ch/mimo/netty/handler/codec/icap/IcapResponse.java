@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +16,7 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import org.jboss.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 
 /**
  * ICAP response.
@@ -42,13 +43,17 @@ public interface IcapResponse extends IcapMessage {
 	
 	/**
 	 * Sets an OPTIONS body to this message.
-	 * @param optionsContent @see {@link ChannelBuffer} containing the body.
+	 * @param optionsContent @see {@link ByteBuf} containing the body.
 	 */
-	void setContent(ChannelBuffer optionsContent);
+	void setContent(ByteBuf optionsContent);
 
 	/**
 	 * Gets an OPTIONS body if present
-	 * @return @see {@link ChannelBuffer} or null
+	 * @return @see {@link ByteBuf} or null
 	 */
-	ChannelBuffer getContent();
+	ByteBuf getContent();
+
+	void setUseOriginalBody(Integer offset);
+
+	Integer getUseOriginalBody();
 }

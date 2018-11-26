@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +17,19 @@
 package ch.mimo.netty.example.icap.simple;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.Executors;
 
-import org.jboss.netty.bootstrap.ClientBootstrap;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.socket.oio.OioClientSocketChannelFactory;
-import org.jboss.netty.handler.codec.http.DefaultHttpRequest;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpMethod;
-import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpVersion;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.oio.OioEventLoopGroup;
+import io.netty.channel.socket.oio.OioSocketChannel;
+import io.netty.handler.codec.http.DefaultFullHttpRequest;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpVersion;
 
 import ch.mimo.netty.handler.codec.icap.DefaultIcapRequest;
 import ch.mimo.netty.handler.codec.icap.IcapMethod;
@@ -44,44 +46,41 @@ import ch.mimo.netty.handler.codec.icap.IcapVersion;
 public class IcapClient {
 
 	public static void main(String[] args) {
-			int port = 8099;
-			String host = "localhost";
-			
-	        // Configure the client.
-	        ClientBootstrap bootstrap = new ClientBootstrap(
-	                new OioClientSocketChannelFactory(
-	                        Executors.newCachedThreadPool()));
+		int port = 8099;
+		String host = "localhost";
 
-	        // Set up the event pipeline factory.
-	        bootstrap.setPipelineFactory(new IcapClientChannelPipeline());
+		EventLoopGroup group = new OioEventLoopGroup();
 
-	        // Start the connection attempt.
-	        ChannelFuture future = bootstrap.connect(new InetSocketAddress(host,port));
+		// Configure the client.
+		Bootstrap bootstrap = new Bootstrap();
+		ChannelFuture connectFuture = bootstrap
+			.group(group)
+			.channel(OioSocketChannel.class)
+			.handler(new IcapClientChannelPipeline())
+			.connect(new InetSocketAddress(host,port));
 
-	        // Wait until the connection attempt succeeds or fails.
-	        Channel channel = future.awaitUninterruptibly().getChannel();
-	        if (!future.isSuccess()) {
-	            future.getCause().printStackTrace();
-	            bootstrap.releaseExternalResources();
-	            return;
-	        }
+		// Wait until the connection attempt succeeds or fails.
+		connectFuture.syncUninterruptibly();
+		if (!connectFuture.isSuccess()) {
+			connectFuture.cause().printStackTrace();
+			return;
+		}
 
-	        // Prepare the ICAP request.
-	        IcapRequest request = new DefaultIcapRequest(IcapVersion.ICAP_1_0,IcapMethod.REQMOD,"/simple","localhost");     
-	        HttpRequest httpRequest = new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST,"/some/servers/uri");
-	        httpRequest.setHeader(HttpHeaders.Names.HOST,host);
-	        httpRequest.setHeader(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.CLOSE);
-	        httpRequest.setHeader(HttpHeaders.Names.ACCEPT_ENCODING, HttpHeaders.Values.GZIP);
-	        httpRequest.setContent(ChannelBuffers.wrappedBuffer("This is the message body that contains all the necessary data to answer the ultimate question...".getBytes()));
-	        request.setHttpRequest(httpRequest);
-	        
-	        // Send the ICAP request.
-	        channel.write(request);
+		// Prepare the ICAP request.
+		IcapRequest request = new DefaultIcapRequest(IcapVersion.ICAP_1_0,IcapMethod.REQMOD,"/simple","localhost");
+		FullHttpRequest httpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST,"/some/servers/uri");
+		httpRequest.headers().add(HttpHeaders.Names.HOST,host);
+		httpRequest.headers().add(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.CLOSE);
+		httpRequest.headers().add(HttpHeaders.Names.ACCEPT_ENCODING, HttpHeaders.Values.GZIP);
+		httpRequest.replace(Unpooled.wrappedBuffer("This is the message body that contains all the necessary data to answer the ultimate question...".getBytes()));
+		request.setHttpRequest(httpRequest);
 
-	        // Wait for the server to close the connection.
-	        channel.getCloseFuture().awaitUninterruptibly();
+		// Send the ICAP request.
+		Channel channel = connectFuture.channel();
+		ChannelFuture requestFuture = channel.writeAndFlush(request);
 
-	        // Shut down executor threads to exit.
-	        bootstrap.releaseExternalResources();
+		// Wait for the server to close the connection.
+		requestFuture.channel().closeFuture().syncUninterruptibly();
+		group.shutdownGracefully();
 	}
 }

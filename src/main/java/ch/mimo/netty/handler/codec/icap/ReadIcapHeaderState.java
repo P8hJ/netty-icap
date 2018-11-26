@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +18,7 @@ package ch.mimo.netty.handler.codec.icap;
 
 import java.util.List;
 
-import org.jboss.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 
 /**
  * Decoder State that reads icap headers.
@@ -36,14 +37,14 @@ public class ReadIcapHeaderState extends State<Object> {
 	}
 	
 	@Override
-	public void onEntry(ChannelBuffer buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
+	public void onEntry(ByteBuf buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
 		if(icapMessageDecoder.message == null) {
 			throw new IllegalArgumentException("This state requires a valid IcapMessage instance");
 		}
 	}
 
 	@Override
-	public StateReturnValue execute(ChannelBuffer buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
+	public StateReturnValue execute(ByteBuf buffer, IcapMessageDecoder icapMessageDecoder) throws DecodingException {
 		List<String[]> headerList = IcapDecoderUtil.readHeaders(buffer,icapMessageDecoder.maxIcapHeaderSize);
 		icapMessageDecoder.message.clearHeaders();
 		for(String[] header : headerList) {
@@ -63,14 +64,14 @@ public class ReadIcapHeaderState extends State<Object> {
 		}
 		if(isOptionsRequest) {
 			return StateReturnValue.createRelevantResult(icapMessageDecoder.message);
-		} else if(encapsulated != null && !encapsulated.containsEntry(IcapMessageElementEnum.REQHDR) & !encapsulated.containsEntry(IcapMessageElementEnum.RESHDR)) {
+		} else if(encapsulated != null && !encapsulated.containsEntry(IcapMessageElementEnum.REQHDR) && !encapsulated.containsEntry(IcapMessageElementEnum.RESHDR)) {
 			return StateReturnValue.createRelevantResult(icapMessageDecoder.message);
 		}
 		return StateReturnValue.createIrrelevantResult();
 	}
 
 	@Override
-	public StateEnum onExit(ChannelBuffer buffer, IcapMessageDecoder icapMessageDecoder, Object decisionInformation) throws DecodingException {
+	public StateEnum onExit(ByteBuf buffer, IcapMessageDecoder icapMessageDecoder, Object decisionInformation) throws DecodingException {
 		IcapMessage message = icapMessageDecoder.message;
 		Encapsulated encapsulated = message.getEncapsulatedHeader();
 		if(message instanceof IcapRequest && ((IcapRequest)message).getMethod().equals(IcapMethod.OPTIONS)) {
@@ -119,7 +120,7 @@ public class ReadIcapHeaderState extends State<Object> {
 	private void handleEncapsulationHeaderVolatility(IcapMessage message) {
 		// Pseudo code
 		// IF Encapsulated header is missing
-			// IF OPTIONS request OR 100 Continue response OR 204 No Content response
+			// IF OPTIONS request OR 100 Continue response OR 204 No Content response OR is a server error
 				// THEN inject synthetic null-body Encapsulated header.
 		boolean requiresSynthecticEncapsulationHeader = false;
 		if(!message.containsHeader(IcapHeaders.Names.ENCAPSULATED)) {
@@ -128,7 +129,9 @@ public class ReadIcapHeaderState extends State<Object> {
 			} else if(message instanceof IcapResponse) {
 				IcapResponse response = (IcapResponse)message;
 				IcapResponseStatus status = response.getStatus();
-				if(status.equals(IcapResponseStatus.CONTINUE) | status.equals(IcapResponseStatus.NO_CONTENT)) {
+				if(status.equals(IcapResponseStatus.CONTINUE) ||
+					status.equals(IcapResponseStatus.NO_CONTENT) ||
+					(status.getCode() >= 500)) {
 					requiresSynthecticEncapsulationHeader = true;
 				}
 			}

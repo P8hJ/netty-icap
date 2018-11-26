@@ -36,7 +36,9 @@ public final class IcapCodecUtil {
 	
 	public static final byte[] NATIVE_IEOF_SEQUENCE = new byte[]{48,59,32,105,101,111,102};
 	
-	public static final String IEOF_SEQUENCE_STRING = "0; ieof";
+	public static final String EXTENSION_IEOF = "ieof";
+
+	public static final String EXTENSION_USE_ORIGINAL_BODY = "use-original-body";
 	
 	/**
 	 * Space

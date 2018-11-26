@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,27 +16,24 @@
  ******************************************************************************/
 package ch.mimo.netty.example.icap.simple;
 
-import static org.jboss.netty.channel.Channels.pipeline;
-
-import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.ChannelPipelineFactory;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPipeline;
 
 import ch.mimo.netty.handler.codec.icap.IcapChunkAggregator;
 import ch.mimo.netty.handler.codec.icap.IcapChunkSeparator;
 import ch.mimo.netty.handler.codec.icap.IcapRequestEncoder;
 import ch.mimo.netty.handler.codec.icap.IcapResponseDecoder;
 
-public class IcapClientChannelPipeline implements ChannelPipelineFactory {
+public class IcapClientChannelPipeline extends ChannelInitializer {
 
 	@Override
-	public ChannelPipeline getPipeline() throws Exception {
-		ChannelPipeline pipeline = pipeline();
+	protected void initChannel(Channel ch) {
+		ChannelPipeline pipeline = ch.pipeline();
     	pipeline.addLast("encoder",new IcapRequestEncoder());
     	pipeline.addLast("chunkSeparator",new IcapChunkSeparator(4096));
       	pipeline.addLast("decoder",new IcapResponseDecoder());
       	pipeline.addLast("chunkAggregator",new IcapChunkAggregator(4096));
       	pipeline.addLast("handler",new IcapClientHandler());
-      	return pipeline;
 	}
-
 }

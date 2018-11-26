@@ -15,7 +15,7 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import org.jboss.netty.handler.codec.http.DefaultHttpChunkTrailer;
+import io.netty.handler.codec.http.DefaultLastHttpContent;
 
 /**
  * This class is used to indicate the end of a chunked data stream and to hold 
@@ -26,20 +26,26 @@ import org.jboss.netty.handler.codec.http.DefaultHttpChunkTrailer;
  * @see IcapChunkTrailer implementation.
  *
  */
-public class DefaultIcapChunkTrailer extends DefaultHttpChunkTrailer implements IcapChunkTrailer {
+public class DefaultIcapChunkTrailer extends DefaultLastHttpContent implements IcapChunkTrailer {
 	
 	private boolean preview;
 	private boolean earlyTerminated;
-	
+	private Integer useOriginalBodyOffset;
+
 	public DefaultIcapChunkTrailer() {
 		this.preview = false;
 		this.earlyTerminated = false;
 	}
 	
 	public DefaultIcapChunkTrailer(boolean isPreview, boolean isEarlyTerminated) {
-		this();
 		this.preview = isPreview;
 		this.earlyTerminated = isEarlyTerminated;
+	}
+
+	public DefaultIcapChunkTrailer(boolean isPreview, boolean isEarlyTerminated, Integer useOriginalBodyOffset) {
+		this.preview = isPreview;
+		this.earlyTerminated = isEarlyTerminated;
+		this.useOriginalBodyOffset = useOriginalBodyOffset;
 	}
 	
 	@Override
@@ -61,8 +67,23 @@ public class DefaultIcapChunkTrailer extends DefaultHttpChunkTrailer implements 
 	public boolean isEarlyTerminated() {
 		return earlyTerminated;
 	}
-	
+
+	@Override
+	public boolean isLast() {
+		return true;
+	}
+
+	@Override
+	public void setUseOriginalBody(Integer offset) {
+		this.useOriginalBodyOffset = offset;
+	}
+
+	@Override
+	public Integer getUseOriginalBody() {
+		return useOriginalBodyOffset;
+	}
+
 	public String toString() {
-		return "DeafultIcapChunkTrailer: [isPreviewChunk=" + preview + "] [wasEarlyTerminated=" + earlyTerminated + "]";
+		return "DefaultIcapChunkTrailer: [isPreviewChunk=" + preview + "] [wasEarlyTerminated=" + earlyTerminated + "] [useOriginalBodyOffset=" + useOriginalBodyOffset + "]";
 	}
 }

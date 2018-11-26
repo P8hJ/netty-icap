@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +16,13 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import java.util.ArrayList;
-import java.util.List;
+import io.netty.buffer.ByteBuf;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.handler.codec.frame.TooLongFrameException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Utility that provides decoding support for ICAP messages.
@@ -37,7 +40,7 @@ public final class IcapDecoderUtil {
 	 * by skipping all prepended control and whitespace characters.
 	 * @param buffer
 	 */
-    public static void skipControlCharacters(ChannelBuffer buffer) {
+    public static void skipControlCharacters(ByteBuf buffer) {
         for (;;) {
             char c = (char) buffer.readUnsignedByte();
             if (!Character.isISOControl(c) &&
@@ -55,7 +58,7 @@ public final class IcapDecoderUtil {
      * @return the first line found in the buffer.
      * @throws TooLongFrameException
      */
-    public static String readLine(ChannelBuffer buffer, int maxLineLength) throws DecodingException {
+    public static String readLine(ByteBuf buffer, int maxLineLength) throws DecodingException {
         StringBuilder sb = new StringBuilder(64);
         int lineLength = 0;
         while (true) {
@@ -87,7 +90,7 @@ public final class IcapDecoderUtil {
      * @return the first line found in the buffer
      * @throws DecodingException
      */
-    public static String previewLine(ChannelBuffer buffer, int maxLineLength) throws DecodingException {
+    public static String previewLine(ByteBuf buffer, int maxLineLength) throws DecodingException {
         StringBuilder sb = new StringBuilder(64);
         int lineLength = 0;
         for(int i = buffer.readerIndex() ; i < buffer.readableBytes() ; i++) {
@@ -190,13 +193,10 @@ public final class IcapDecoderUtil {
 	 * parses the chunk size from a line.
 	 * 
 	 * @param line
-	 * @return -1 if the chunk size indicates that a preview message is early terminated.
+	 * @return the chunk size
 	 */
     public static int getChunkSize(String line) throws DecodingException {
         String hex = line.trim();
-        if(hex.equals(IcapCodecUtil.IEOF_SEQUENCE_STRING)) {
-        	return -1;
-        }
         for (int i = 0; i < hex.length(); i ++) {
             char c = hex.charAt(i);
             if (c == ';' || Character.isWhitespace(c) || Character.isISOControl(c)) {
@@ -210,15 +210,51 @@ public final class IcapDecoderUtil {
         	throw new DecodingException(nfe);
         }
     }
-	
+
+	/** parses the chunk extensions from a line
+	 *
+	 * @param line
+	 * @return map containing extensions
+	 */
+	public static Map<String, String> getExtensions(String line) {
+    	Map<String, String> extensions = null;
+		int separator = -1;
+		for(int i = 0; i < line.length(); ++i) {
+			char c = line.charAt(i);
+			if (c == ';') {
+				if (separator == -1) {
+					extensions = new LinkedHashMap<String, String>();
+				} else if (separator + 1 < i) {
+					String[] extension = splitExtension(line.substring(separator + 1, i));
+					extensions.put(extension[0], extension[1]);
+				}
+				separator = i;
+			}
+		}
+		if (separator != -1 && separator + 1 < line.length()) {
+			String[] extension = splitExtension(line.substring(separator + 1));
+			extensions.put(extension[0], extension[1]);
+		}
+		return extensions != null ? extensions : Collections.<String, String>emptyMap();
+	}
+
+	public static String[] splitExtension(String extension) {
+    	extension = extension.trim();
+    	int equals = extension.indexOf('=');
+		if (equals == -1 || equals + 1 == extension.length()) {
+			return new String[] { extension, "" };
+		}
+		return new String[] { extension.substring(0, equals).trim(), extension.substring(equals + 1).trim() };
+	}
+
     /**
      * parses all available message headers.
-     * @param buffer @see {@link ChannelBuffer} that contains the headers.
+     * @param buffer @see {@link ByteBuf} that contains the headers.
      * @param maxSize the maximum size of all headers concatenated.
      * @return a list of String arrays containing [0] key [1] value of each header.
      * @throws TooLongFrameException if the maximum size is reached.
      */
-	public static List<String[]> readHeaders(ChannelBuffer buffer, int maxSize) throws DecodingException {
+	public static List<String[]> readHeaders(ByteBuf buffer, int maxSize) throws DecodingException {
 		List<String[]> headerList = new ArrayList<String[]>();
 		SizeDelimiter sizeDelimiter = new SizeDelimiter(maxSize);
 		String line = IcapDecoderUtil.readSingleHeaderLine(buffer,sizeDelimiter);
@@ -257,7 +293,7 @@ public final class IcapDecoderUtil {
 	 * @return one complete header containing key and value.
 	 * @throws TooLongFrameException In case the total header length is exceeded.
 	 */
-	public static String readSingleHeaderLine(ChannelBuffer buffer, SizeDelimiter sizeDelimiter) throws DecodingException {
+	public static String readSingleHeaderLine(ByteBuf buffer, SizeDelimiter sizeDelimiter) throws DecodingException {
 		StringBuilder sb = new StringBuilder(64);
 		loop: for (;;) {
 			char nextByte = (char) buffer.readByte();

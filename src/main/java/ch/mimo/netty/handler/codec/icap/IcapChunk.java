@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright 2012 Michael Mimo Moratti
+ * Modifications Copyright (c) 2018 eBlocker GmbH
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +16,7 @@
  ******************************************************************************/
 package ch.mimo.netty.handler.codec.icap;
 
-import org.jboss.netty.handler.codec.http.HttpChunk;
+import io.netty.handler.codec.http.HttpContent;
 
 /**
  * This is the main ICAP Chunk. In essence it is a @see {@link HttpChunk} with the addition of 
@@ -24,7 +25,7 @@ import org.jboss.netty.handler.codec.http.HttpChunk;
  * @author Michael Mimo Moratti (mimo@mimo.ch)
  *
  */
-public interface IcapChunk extends HttpChunk {
+public interface IcapChunk extends HttpContent {
 
 	/**
 	 * Toggles whether this chunk belongs to a preview message.
@@ -53,4 +54,6 @@ public interface IcapChunk extends HttpChunk {
 	 * @return boolean true if the preview message is early terminated.
 	 */
 	boolean isEarlyTerminated();
+
+	boolean isLast();
 }
