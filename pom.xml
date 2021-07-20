@@ -38,7 +38,7 @@
 	<groupId>org.eblocker</groupId>
 	<artifactId>netty-icap</artifactId>
 	<packaging>jar</packaging>
-	<version>2.1.1</version>
+	<version>2.1.2</version>
 
 	<name>The Netty ICAP Protocol Codec Project</name>
 	<url>http://icap.mimo.ch/</url>
@@ -62,6 +62,9 @@
 		<developerConnection>scm:git:git@github.com:jmimo/netty-icap.git</developerConnection>
 		<url>git@github.com:jmimo/netty-icap.git</url>
 	</scm>
+	<properties>
+            <java.release>11</java.release>
+        </properties>
 	<dependencies>
 		<dependency>
 			<groupId>io.netty</groupId>
@@ -97,7 +100,6 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	<properties />
 	<profiles>
 		<profile>
 			<id>documentation</id>
@@ -267,6 +269,15 @@
 		</profile>
 	</profiles>
 	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+                        </plugin>
+                    </plugins>
+		</pluginManagement>
 		<plugins>
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
@@ -317,11 +328,9 @@
 			</plugin>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.3</version>
 				<configuration>
+					<release>${java.release}</release>
 					<encoding>UTF-8</encoding>
-					<source>1.6</source>
-					<target>1.6</target>
 					<debug>true</debug>
 					<optimize>true</optimize>
 					<showDeprecations>true</showDeprecations>
